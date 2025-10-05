@@ -1,0 +1,9 @@
+Cryptography courses:
+  1a) https://www.youtube.com/watch?v=j_8PLI_wCVU
+  1b) https://www.youtube.com/watch?v=s5yza-s0bhM
+
+Node.js:
+  1) https://www.youtube.com/watch?v=ENrzD9HAZK4 - a quick guide to node.js
+
+React.js:
+  2) https://www.youtube.com/watch?v=SqcY0GlETPk - 1 hour react tutorial
