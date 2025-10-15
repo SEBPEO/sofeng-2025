@@ -5,11 +5,16 @@ import { ConfigService } from '@nestjs/config';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private auth: AuthService, private cfg: ConfigService) {}
+  constructor(
+    private auth: AuthService,
+    private cfg: ConfigService,
+  ) {}
 
   @Get('google')
   @UseGuards(AuthGuard('google'))
-  googleAuth() { /* redirects to Google */ }
+  googleAuth() {
+    /* redirects to Google */
+  }
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
@@ -24,5 +29,19 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   me(@Req() req) {
     return req.user;
+  }
+
+  @Get('github')
+  @UseGuards(AuthGuard('github'))
+  githubAuth() {
+    /* redirects to GitHub */
+  }
+
+  @Get('github/callback')
+  @UseGuards(AuthGuard('github'))
+  async githubCallback(@Req() req, @Res() res) {
+    const { token } = await this.auth.handleGoogleLogin(req.user); // reuse same logic
+    const frontend = this.cfg.get('FRONTEND_URL');
+    return res.redirect(`${frontend}/oauth/callback?token=${token}`);
   }
 }
