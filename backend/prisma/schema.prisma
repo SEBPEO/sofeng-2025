@@ -1,0 +1,110 @@
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url = env("DATABASE_URL")       
+}
+
+model User{
+    user_id         String      @id @default(uuid())
+    first_name      String      @db.VarChar(200)
+    last_name       String      @db.VarChar(200)
+    gender          Gender
+    email           String      @unique @db.VarChar(200)
+    role            Role 
+    createdAt       DateTime    @default(now())
+    lastLogin       DateTime?
+    
+    sentMessages        Chat[]      @relation("SentMessages")
+    receivedMessages    Chat[]      @relation("ReceivedMessages")
+    doctor_profile      DoctorProfile?
+    patient_profile     PatientProfile?
+    
+}
+
+model Chat{
+    message_id      Int     @id 
+    sender_id       String
+    receiver_id     String
+    content         String
+    sent_at         DateTime
+    read_at         DateTime?
+
+    sender      User    @relation("SentMessages", fields: [sender_id], references: [user_id] )
+    receiver    User    @relation("ReceivedMessages", fields: [receiver_id], references: [user_id]) 
+}
+
+model DoctorProfile{
+    doctor_id           Int      @id
+    user_id             String      @unique
+    specialization      String   @db.VarChar(150)
+    experience_years    Int?
+    clinic_address      String   @db.VarChar(200)
+    contact_info        String?  @db.VarChar(200)
+    working_hours       String?  @db.VarChar(100)
+
+    user            User          @relation(fields: [user_id], references: [user_id])
+    appointments    Appointment[]
+
+}
+
+model PatientProfile{
+    patient_id          Int         @id
+    user_id             String      @unique
+    date_of_birth       DateTime?
+    emergency_contact   String?     @db.VarChar(200)
+    conditions          String?
+    medications         String?
+    allergy             String?
+
+    user            User          @relation(fields: [user_id], references: [user_id])
+    appointments    Appointment[]
+}
+
+model Appointment {
+    appointment_id       Int       @id
+    doctor_id            Int
+    patient_id           Int
+    appointment_datetime DateTime
+    duration_minutes     Int?
+    status               AppointmentStatus
+    notes                String? 
+
+    doctor          DoctorProfile @relation(fields: [doctor_id], references: [doctor_id])
+    patient         PatientProfile @relation(fields: [patient_id], references: [patient_id])
+    consultation    Consultation?
+}
+model Consultation {
+    consultation_id     Int         @id
+    appointment_id      Int
+    created_at          DateTime?
+    diagnosis           String?  
+    treatment_plan      String?  
+    recording           String?     @db.VarChar(200)
+    transcript          String?  
+    AI_summary          String? 
+
+    appointment Appointment @relation(fields: [appointment_id], references: [appointment_id])
+
+}
+
+enum Role {
+    doctor
+    patient
+}
+
+enum Gender {
+    male
+    female
+}
+
+enum AppointmentStatus {
+    scheduled
+    completed
+    cancelled
+}
+
+
