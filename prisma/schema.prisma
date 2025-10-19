@@ -79,7 +79,7 @@ model Appointment {
 }
 model Consultation {
     consultation_id     Int         @id
-    appointment_id      Int
+    appointment_id      Int         @unique
     created_at          DateTime?
     diagnosis           String?  
     treatment_plan      String?  
