@@ -31,6 +31,7 @@
     "@prisma/client": "^6.17.1",
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> a93a272 (fixed requirements packages.json)
@@ -44,6 +45,8 @@
 =======
 >>>>>>> a9c528d (fixed requirements packages.json)
 >>>>>>> a93a272 (fixed requirements packages.json)
+=======
+>>>>>>> dev
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
