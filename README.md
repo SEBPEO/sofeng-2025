@@ -68,16 +68,6 @@ Throughout this project, our team aimed to learn and apply:
 
 ---
 
-## 🗂️ Repository Structure (Suggested)
-
-📦 medical-ai-notetaker
-├── 📁 frontend/ # React app
-├── 📁 backend/ # Node.js API
-├── 📁 docs/ # Documentation (PDF, diagrams)
-├── 📁 wiki/ # Wiki pages (requirements, architecture, etc.)
-├── README.md
-└── LICENSE
-
 ## 📄 Why This Document?
 
 This README serves as a **reference and progress tracker** for our Software Engineering project.  
