@@ -1,19 +1,24 @@
 import React, { useState } from 'react';
-import { loginUser } from '../api/auth';
+import { loginUser, setAuthToken } from '../api/auth';
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
     try {
       const res = await loginUser(email, password);
-      localStorage.setItem('token', res.token);
+      setAuthToken(res.token);
       window.location.href = '/dashboard';
-    } catch {
-      setError('Invalid credentials. Please try again.');
+    } catch (err: any) {
+      setError(err?.message || 'Invalid credentials. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -43,8 +48,8 @@ const LoginForm: React.FC = () => {
         />
       </div>
 
-      <button type="submit" className="login-btn">
-        Sign in
+      <button type="submit" className="login-btn" disabled={loading}>
+        {loading ? 'Signing in…' : 'Sign in'}
       </button>
     </form>
   );
