@@ -2,12 +2,14 @@ import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { ConfigService } from '@nestjs/config';
+import { UsersService } from '../users/users.service';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private auth: AuthService,
     private cfg: ConfigService,
+    private users: UsersService,
   ) {}
 
   @Get('google')
@@ -19,16 +21,22 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleCallback(@Req() req, @Res() res) {
+
     const { token } = await this.auth.handleGoogleLogin(req.user);
     // For now: redirect to front with token in URL (later: cookie)
+
+
     const frontend = this.cfg.get('FRONTEND_URL');
     return res.redirect(`${frontend}/oauth/callback?token=${token}`);
   }
 
   @Get('me')
   @UseGuards(AuthGuard('jwt'))
-  me(@Req() req) {
-    return req.user;
+  async me(@Req() req) {
+      const id = req.user?.userId || req.user?.sub;
+
+      const dbUser = await this.users.findDbById(id);
+      return dbUser ?? req.user;
   }
 
   @Get('github')
@@ -40,7 +48,7 @@ export class AuthController {
   @Get('github/callback')
   @UseGuards(AuthGuard('github'))
   async githubCallback(@Req() req, @Res() res) {
-    const { token } = await this.auth.handleGoogleLogin(req.user); // reuse same logic
+    const { token } = await this.auth.handleGoogleLogin(req.user);
     const frontend = this.cfg.get('FRONTEND_URL');
     return res.redirect(`${frontend}/oauth/callback?token=${token}`);
   }
