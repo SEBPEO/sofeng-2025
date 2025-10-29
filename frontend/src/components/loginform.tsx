@@ -1,11 +1,19 @@
-import React, { useState } from 'react';
-import { loginUser, setAuthToken } from '../api/auth';
+import React, { useState, useEffect } from 'react';
+import { loginUser, setAuthToken, getAuthToken } from '../api/auth';
+import { useNavigate } from 'react-router-dom';
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (getAuthToken()) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -14,7 +22,7 @@ const LoginForm: React.FC = () => {
     try {
       const res = await loginUser(email, password);
       setAuthToken(res.token);
-      window.location.href = '/dashboard';
+      navigate('/dashboard', { replace: true });
     } catch (err: any) {
       setError(err?.message || 'Invalid credentials. Please try again.');
     } finally {
