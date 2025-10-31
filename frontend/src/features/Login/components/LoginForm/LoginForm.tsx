@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { loginUser, setAuthToken, getAuthToken } from '../api/auth';
+import { loginUser, setAuthToken, getAuthToken } from '../../../../api/auth';
 import { useNavigate } from 'react-router-dom';
+import styles from './LoginForm.module.css';
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -31,8 +32,8 @@ const LoginForm: React.FC = () => {
   };
 
   return (
-    <form className="login-form" onSubmit={handleSubmit}>
-      {error && <p className="error-text">{error}</p>}
+    <form className={styles.loginForm} onSubmit={handleSubmit}>
+      {error && <p className={styles.errorText}>{error}</p>}
 
       <div>
         <label>Email</label>
@@ -56,7 +57,7 @@ const LoginForm: React.FC = () => {
         />
       </div>
 
-      <button type="submit" className="login-btn" disabled={loading}>
+      <button type="submit" className={styles.loginBtn} disabled={loading}>
         {loading ? 'Signing in…' : 'Sign in'}
       </button>
     </form>

@@ -1,0 +1,39 @@
+/* Dashboard page scoped styles */
+
+.container {
+  padding: 2rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2d3748; /* slate-800 */
+  margin-bottom: 0.5rem;
+}
+
+.text {
+  color: #4a5568; /* slate-600 */
+  margin-bottom: 1rem;
+}
+
+.logoutButton {
+  background: linear-gradient(109.6deg, rgb(255, 207, 84) 11.2%, rgb(255, 158, 27) 91.1%);
+  color: #2d3748;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.25);
+}
+
+.logoutButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(251, 191, 36, 0.35);
+}
+
+.logoutButton:active {
+  transform: translateY(0);
+}

@@ -1,0 +1,74 @@
+/* LoginForm component styles */
+
+.loginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  text-align: left;
+}
+
+.loginForm label {
+  font-weight: 500;
+  color: #2d3748;
+  margin-bottom: 8px;
+  font-size: 14px;
+  display: block;
+}
+
+.loginForm input {
+  padding: 16px 20px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 16px;
+  background: #f8fafc;
+  transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.loginForm input:focus {
+  outline: none;
+  border-color: #fbbf24;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.1);
+  transform: translateY(-1px);
+}
+
+.loginForm input::placeholder {
+  color: #a0aec0;
+}
+
+.loginBtn {
+  background: linear-gradient(109.6deg, rgb(255, 207, 84) 11.2%, rgb(255, 158, 27) 91.1%);
+  color: #2d3748;
+  border: none;
+  padding: 16px 24px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 8px;
+  box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+}
+
+.loginBtn:hover {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
+}
+
+.loginBtn:active {
+  transform: translateY(0px);
+  box-shadow: 0 2px 10px rgba(251, 191, 36, 0.3);
+}
+
+.errorText {
+  background: #fed7d7;
+  color: #c53030;
+  padding: 12px;
+  border-radius: 6px;
+  margin: 0 0 20px 0;
+  text-align: center;
+  font-size: 14px;
+}
