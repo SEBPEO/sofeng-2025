@@ -1,7 +1,8 @@
 import styles from './Login.module.css';
-import GoogleIcon from '../../icons/Google/Google';
+import { GoogleIcon } from '@/components/icons';
+import { Button } from '@/components';
 
-function Login() {
+export function Login() {
   const redirectToGoogleAuth = () => {
     window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/auth/google`;
   };
@@ -16,13 +17,11 @@ function Login() {
           <h1>Welcome!</h1>
           <p>Continue with your Google account</p>
         </div>
-        <button className={styles.googleBtn} onClick={redirectToGoogleAuth}>
+        <Button className={styles.googleBtn} onClick={redirectToGoogleAuth}>
           <GoogleIcon /> Sign in with Google
-        </button>
+        </Button>
       </div>
       <div className={styles.footer}>© 2025 Medical AI Notetaker. All rights reserved.</div>
     </div>
   );
 }
-
-export default Login;
