@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { loginUser, setAuthToken, getAuthToken } from '../../../../api/auth';
+import { loginUser, setAuthToken, getAuthToken } from '@/api/auth';
 import { useNavigate } from 'react-router-dom';
 import styles from './LoginForm.module.css';
+import { Button } from '@/components/Button/Button';
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -57,9 +58,9 @@ const LoginForm: React.FC = () => {
         />
       </div>
 
-      <button type="submit" className={styles.loginBtn} disabled={loading}>
+      <Button type="submit" className={styles.loginBtn} disabled={loading}>
         {loading ? 'Signing in…' : 'Sign in'}
-      </button>
+      </Button>
     </form>
   );
 };

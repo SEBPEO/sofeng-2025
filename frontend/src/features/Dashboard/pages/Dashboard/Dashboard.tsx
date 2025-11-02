@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { clearAuthToken } from '../../../../api/auth';
+import { clearAuthToken } from '@/api/auth';
 import styles from './Dashboard.module.css';
+import { Button } from '@/components/Button/Button';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -14,9 +15,9 @@ const Dashboard: React.FC = () => {
     <div className={styles.container}>
       <h1 className={styles.title}>Dashboard</h1>
       <p className={styles.text}>You are logged in.</p>
-      <button className={styles.logoutButton} onClick={handleLogout}>
+      <Button className={styles.logoutButton} onClick={handleLogout}>
         Logout
-      </button>
+      </Button>
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { setAuthToken } from '../../../../api/auth';
+import { setAuthToken } from '@/api/auth';
 import styles from './OAuthCallback.module.css';
 
 const OAuthCallback: React.FC = () => {

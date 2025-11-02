@@ -1,6 +1,7 @@
 import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
+import './styles/variables.css';
 import './index.css';
 import Login from './features/Login/pages/Login/Login';
 
@@ -8,7 +9,7 @@ import Dashboard from './features/Dashboard/pages/Dashboard/Dashboard';
 import { getAuthToken } from './api/auth';
 import OAuthCallback from './features/Login/components/OAuthCallback/OAuthCallback';
 
-const Protected = ({ children }: { children: React.ReactNode }) => {
+export const Protected = ({ children }: { children: React.ReactNode }) => {
   const token = getAuthToken();
   return token ? <>{children}</> : <Navigate to="/" replace />;
 };

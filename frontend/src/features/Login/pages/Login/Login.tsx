@@ -1,5 +1,6 @@
 import styles from './Login.module.css';
 import GoogleIcon from '../../icons/Google/Google';
+import { Button } from '@/components/Button/Button';
 
 function Login() {
   const redirectToGoogleAuth = () => {
@@ -16,9 +17,9 @@ function Login() {
           <h1>Welcome!</h1>
           <p>Continue with your Google account</p>
         </div>
-        <button className={styles.googleBtn} onClick={redirectToGoogleAuth}>
+        <Button className={styles.googleBtn} onClick={redirectToGoogleAuth}>
           <GoogleIcon /> Sign in with Google
-        </button>
+        </Button>
       </div>
       <div className={styles.footer}>© 2025 Medical AI Notetaker. All rights reserved.</div>
     </div>
