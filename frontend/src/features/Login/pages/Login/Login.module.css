@@ -1,0 +1,171 @@
+/* Login page scoped styles (migrated from global App.css) */
+
+.app {
+  width: 100vw;
+  min-height: 100vh;
+  background: radial-gradient(circle at 10% 20%, rgb(255, 200, 124) 0%, rgb(252, 251, 121) 90%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  position: relative;
+}
+
+.brandHeader {
+  position: absolute;
+  top: 25px;
+  left: 30px;
+  z-index: 10;
+}
+
+.brandHeader h2 {
+  color: white;
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -0.025em;
+}
+
+.loginContainer {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 48px 50px;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  width: 100%;
+  text-align: center;
+  margin: 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.loginHeader {
+  margin-bottom: 40px;
+}
+
+.loginHeader h1 {
+  color: #2d3748;
+  margin-bottom: 8px;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.loginHeader p {
+  color: #4a5568;
+  font-size: 15px;
+  margin: 0;
+  font-weight: 400;
+}
+
+.googleBtn {
+  background: white;
+  border: 2px solid #e5e7eb;
+  padding: 14px 24px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #374151;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.googleBtn:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.googleBtn:active {
+  transform: translateY(0px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.footer {
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #2d3748;
+  font-size: 12px;
+  text-align: center;
+}
+
+/* Tablet Styles */
+@media (max-width: 768px) {
+  .app {
+    padding: 16px;
+  }
+
+  .loginContainer {
+    padding: 32px 24px;
+    max-width: 380px;
+  }
+
+  .brandHeader {
+    top: 20px;
+    left: 20px;
+  }
+
+  .brandHeader h2 {
+    font-size: 18px;
+  }
+}
+
+/* Mobile Styles */
+@media (max-width: 480px) {
+  .app {
+    padding: 12px;
+  }
+
+  .loginContainer {
+    padding: 24px 20px;
+    max-width: 100%;
+    border-radius: 8px;
+  }
+
+  .loginHeader h1 {
+    font-size: 22px;
+  }
+
+  .loginHeader p {
+    font-size: 13px;
+  }
+
+  .brandHeader {
+    top: 16px;
+    left: 16px;
+  }
+
+  .brandHeader h2 {
+    font-size: 16px;
+  }
+
+  .footer {
+    bottom: 16px;
+    font-size: 11px;
+  }
+}
+
+/* Small Mobile Styles */
+@media (max-width: 320px) {
+  .loginContainer {
+    padding: 20px 16px;
+  }
+
+  .loginHeader h1 {
+    font-size: 20px;
+  }
+
+  .brandHeader h2 {
+    font-size: 15px;
+  }
+}
