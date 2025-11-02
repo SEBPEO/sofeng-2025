@@ -13,6 +13,7 @@ Frontend rules:
 -   Put shared UI in `src/components/*` and hooks in `src/hooks/*` etc.
 -   Use absolute imports from `src` for anything outside the current feature (e.g. `components/ui/Button/Button`).
 -   Create and use barrel-style exports (index.ts). Keep barrels small and explicit, and avoid creating circular dependencies. Group and comment exports.
+-   Prefer using `react-hook-form` for form state and validation across the frontend. Use it for all form management unless there's a strong reason not to.
 
 Backend rules:
 
