@@ -22,7 +22,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         <div className={styles.actions}>
-          <Button variant="ghost" onClick={handleLogout}>
+          <Button variant="primary" onClick={handleLogout}>
             Logout
           </Button>
         </div>

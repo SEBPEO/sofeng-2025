@@ -20,17 +20,13 @@
 .primary {
   background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-700) 100%);
   color: #fff;
-  box-shadow: 0 8px 20px rgba(30, 136, 229, 0.12);
+  box-shadow: 0 8px 20px rgba(23, 181, 163, 0.12);
 }
 
 .secondary {
-  background: linear-gradient(
-    90deg,
-    var(--color-accent-teal) 0%,
-    var(--color-accent-teal-700) 100%
-  );
-  color: #fff;
-  box-shadow: 0 8px 20px rgba(23, 181, 163, 0.1);
+  background: linear-gradient(90deg, var(--color-secondary) 0%, var(--color-secondary-700) 100%);
+  color: rgba(0, 0, 0, 0.9);
+  box-shadow: 0 8px 20px rgba(242, 183, 5, 0.14);
 }
 
 .ghost {
@@ -57,7 +53,7 @@
 }
 
 .button:focus-visible {
-  /* subtle ring using the accent teal for good contrast */
+  /* subtle ring using the primary (teal) for good contrast */
   box-shadow:
     0 6px 18px rgba(16, 24, 40, 0.06),
     0 0 0 4px rgba(23, 181, 163, 0.14);

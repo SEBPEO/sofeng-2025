@@ -1,13 +1,10 @@
 :root {
   /* Colors */
-  --color-primary: #1e88e5;
-  --color-primary-700: #1669b2;
-  --color-secondary: #f57c00;
-  /* Added modern accents (from provided palette image): teal and warm yellow */
-  --color-accent-teal: #17b5a3; /* bright teal */
-  --color-accent-teal-700: #128d7a; /* darker teal for hover */
-  --color-accent-yellow: #ffd166; /* warm mustard/yellow */
-  --color-accent-yellow-700: #f2b705; /* darker yellow for contrast */
+  /* Primary/secondary palette */
+  --color-primary: #17b5a3; /* teal */
+  --color-primary-700: #128d7a; /* teal -700 for hover/active */
+  --color-secondary: #ffd166; /* yellow */
+  --color-secondary-700: #f2b705; /* deeper yellow for hover/active */
   --color-background: #f9f9f9;
   --color-surface: #ffffff;
   --color-text: #212121;
