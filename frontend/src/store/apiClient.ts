@@ -17,7 +17,7 @@ apiClient.interceptors.request.use((config) => {
       (config.headers as Record<string, string>).Authorization = `Bearer ${token}`;
     }
   } catch {
-    // ignore (e.g., SSR or disabled storage)
+    console.log('Error while attaching auth token to request');
   }
   return config;
 });

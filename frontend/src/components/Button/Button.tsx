@@ -9,11 +9,12 @@ export const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
   className = '',
   children,
+  type = 'button',
   ...props
-}) => {
+}: ButtonProps) => {
   const cls = [styles.button, styles[variant], className].filter(Boolean).join(' ');
   return (
-    <button className={cls} {...props}>
+    <button className={cls} type={type} {...props}>
       {children}
     </button>
   );

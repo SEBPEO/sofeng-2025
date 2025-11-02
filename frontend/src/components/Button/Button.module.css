@@ -9,18 +9,28 @@
   align-items: center;
   justify-content: center;
   transition:
-    transform 0.12s ease,
-    opacity 0.12s ease;
+    transform 0.16s cubic-bezier(0.2, 0.9, 0.2, 1),
+    box-shadow 0.16s ease,
+    opacity 0.12s ease,
+    background-color 0.16s ease;
+  will-change: transform, box-shadow;
+  -webkit-tap-highlight-color: transparent; /* mobile touch cleanup */
 }
 
 .primary {
-  background: var(--color-primary);
+  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-700) 100%);
   color: #fff;
+  box-shadow: 0 8px 20px rgba(30, 136, 229, 0.12);
 }
 
 .secondary {
-  background: var(--color-secondary);
+  background: linear-gradient(
+    90deg,
+    var(--color-accent-teal) 0%,
+    var(--color-accent-teal-700) 100%
+  );
   color: #fff;
+  box-shadow: 0 8px 20px rgba(23, 181, 163, 0.1);
 }
 
 .ghost {
@@ -30,12 +40,32 @@
 }
 
 .button:hover {
-  opacity: 0.95;
-  transform: translateY(-1px);
+  opacity: 0.98;
+  transform: translateY(-2px) scale(1.005);
+  box-shadow: 0 12px 30px rgba(16, 24, 40, 0.06);
 }
 
 .button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
+}
+
+/* Remove harsh browser outlines but keep an accessible visible focus ring */
+.button:focus {
+  outline: none;
+}
+
+.button:focus-visible {
+  /* subtle ring using the accent teal for good contrast */
+  box-shadow:
+    0 6px 18px rgba(16, 24, 40, 0.06),
+    0 0 0 4px rgba(23, 181, 163, 0.14);
+}
+
+/* Softer active state to avoid 'outlier' jumpiness on click */
+.button:active {
+  transform: translateY(0) scale(0.997);
+  box-shadow: 0 6px 16px rgba(16, 24, 40, 0.05);
+  transition-duration: 90ms;
 }

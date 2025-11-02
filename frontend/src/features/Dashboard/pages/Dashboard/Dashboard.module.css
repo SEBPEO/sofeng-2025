@@ -1,39 +1,76 @@
 /* Dashboard page scoped styles */
-
 .container {
   padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-height: 100vh;
+  background: var(--color-background);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
 }
 
 .title {
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 700;
-  color: var(--color-text); /* slate-800 */
-  margin-bottom: 0.5rem;
-}
-
-.text {
-  color: var(--color-text-light); /* slate-600 */
-  margin-bottom: 1rem;
-}
-
-.logoutButton {
-  background: linear-gradient(109.6deg, rgb(255, 207, 84) 11.2%, rgb(255, 158, 27) 91.1%);
   color: var(--color-text);
-  border: none;
-  padding: 10px 16px;
+  margin: 0;
+}
+
+.subtitle {
+  color: var(--color-text-light);
+  margin-top: 4px;
+  font-size: 0.95rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  background: var(--color-surface);
+  padding: 1.125rem;
   border-radius: var(--radius-md);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.25);
+  box-shadow: var(--elevation-1);
+  border: 1px solid rgba(16, 24, 40, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
-.logoutButton:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(251, 191, 36, 0.35);
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.logoutButton:active {
-  transform: translateY(0);
+.value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.label {
+  color: var(--color-text-light);
+  font-size: 0.9rem;
+}
+
+/* Intentionally no per-page Button overrides: use component variants for consistency */
+
+.smallMuted {
+  color: var(--color-text-light);
+  font-size: 0.85rem;
 }

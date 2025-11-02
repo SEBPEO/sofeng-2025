@@ -1,7 +1,7 @@
 import React from 'react';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
 import { login, dashboard } from '@/features';
-import { getAuthToken } from '@/api/auth';
+import { getAuthToken } from '@/store/auth/authApi';
 
 const Protected = ({ children }: { children: React.ReactNode }) => {
   const token = getAuthToken();

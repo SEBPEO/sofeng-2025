@@ -1,4 +1,4 @@
-import apiClient from '@/lib/apiClient';
+import apiClient from '@/store/apiClient';
 
 export interface LoginResponse {
   token: string;
@@ -29,9 +29,4 @@ export function getAuthToken(): string | null {
 
 export function clearAuthToken(): void {
   localStorage.removeItem(TOKEN_KEY);
-}
-
-export function authHeader(): HeadersInit {
-  const token = getAuthToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
 }

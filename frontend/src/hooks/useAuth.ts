@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { loginUser as apiLogin } from '@/api/auth';
+import { loginUser as apiLogin } from '@/store/auth/authApi';
 
 const TOKEN_KEY = 'token';
 
