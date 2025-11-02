@@ -1,6 +1,6 @@
 import styles from './Login.module.css';
-import GoogleIcon from '../../icons/Google/Google';
-import { Button } from '@/components/Button/Button';
+import { GoogleIcon } from '@/components/icons';
+import { Button } from '@/components';
 
 function Login() {
   const redirectToGoogleAuth = () => {

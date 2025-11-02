@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { clearAuthToken } from '@/api/auth';
 import styles from './Dashboard.module.css';
-import { Button } from '@/components/Button/Button';
+import { Button } from '@/components';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();

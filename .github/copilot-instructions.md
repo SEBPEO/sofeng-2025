@@ -12,6 +12,7 @@ Frontend rules:
 -   Keep feature folders in `src/features/*`.
 -   Put shared UI in `src/components/*` and hooks in `src/hooks/*` etc.
 -   Use absolute imports from `src` for anything outside the current feature (e.g. `components/ui/Button/Button`).
+-   Create and use barrel-style exports (index.ts). Keep barrels small and explicit, and avoid creating circular dependencies. Group and comment exports.
 
 Backend rules:
 
