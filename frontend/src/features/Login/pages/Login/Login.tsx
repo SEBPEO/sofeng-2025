@@ -2,7 +2,7 @@ import styles from './Login.module.css';
 import { GoogleIcon } from '@/components/icons';
 import { Button } from '@/components';
 
-function Login() {
+export function Login() {
   const redirectToGoogleAuth = () => {
     window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/auth/google`;
   };
@@ -25,5 +25,3 @@ function Login() {
     </div>
   );
 }
-
-export default Login;

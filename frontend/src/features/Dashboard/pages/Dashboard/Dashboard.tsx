@@ -4,7 +4,7 @@ import { clearAuthToken } from '@/api/auth';
 import styles from './Dashboard.module.css';
 import { Button } from '@/components';
 
-const Dashboard: React.FC = () => {
+export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const handleLogout = () => {
     clearAuthToken();
@@ -21,5 +21,3 @@ const Dashboard: React.FC = () => {
     </div>
   );
 };
-
-export default Dashboard;

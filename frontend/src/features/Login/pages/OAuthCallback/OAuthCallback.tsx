@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { setAuthToken } from '@/api/auth';
 import styles from './OAuthCallback.module.css';
 
-const OAuthCallback: React.FC = () => {
+export const OAuthCallback: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,5 +24,3 @@ const OAuthCallback: React.FC = () => {
     </div>
   );
 };
-
-export default OAuthCallback;
