@@ -399,8 +399,8 @@
 
 .brandHeader {
   position: absolute;
-  top: 50px;
-  left: 50px;
+  top: 20px;
+  left: 20px;
   z-index: 10;
   display: flex;
   align-items: center;
@@ -499,15 +499,15 @@
 
 .logo {
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15))
-          drop-shadow(0 0 15px rgba(23, 181, 163, 0.3));
+          drop-shadow(0 0 15px rgba(255, 213, 74, 0.3));
   animation: logoFloat 3s ease-in-out infinite;
   transition: filter 0.3s ease;
 }
 
 .brandHeader:hover .logo {
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15))
-          drop-shadow(0 0 25px rgba(23, 181, 163, 0.5))
-          drop-shadow(0 0 35px rgba(255, 213, 74, 0.3));
+          drop-shadow(0 0 25px rgba(255, 213, 74, 0.5))
+          drop-shadow(0 0 35px rgba(255, 180, 100, 0.4));
 }
 
 @keyframes logoFloat {
@@ -527,7 +527,7 @@
   letter-spacing: -0.025em;
   text-shadow: 
     0 1px 2px rgba(255, 255, 255, 0.8),
-    0 0 15px rgba(23, 181, 163, 0.2);
+    0 0 15px rgba(255, 213, 74, 0.2);
   background: linear-gradient(90deg, 
     #1a1a1a 0%, 
     #2a2a2a 50%,
@@ -552,9 +552,9 @@
   text-transform: uppercase;
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
   background: linear-gradient(90deg, 
-    rgba(23, 181, 163, 1) 0%, 
+    rgba(255, 180, 100, 1) 0%, 
     rgba(255, 213, 74, 1) 50%,
-    rgba(23, 181, 163, 1) 100%
+    rgba(255, 180, 100, 1) 100%
   );
   background-size: 200% auto;
   -webkit-background-clip: text;
@@ -570,35 +570,7 @@
   width: 20px;
   height: 20px;
   pointer-events: none;
-}
-
-.cornerAccent1 {
-  top: -2px;
-  right: -2px;
-  border-top: 3px solid rgba(23, 181, 163, 0.6);
-  border-right: 3px solid rgba(23, 181, 163, 0.6);
-  border-top-right-radius: 16px;
-  animation: accentGlow 2s ease-in-out infinite;
-}
-
-.cornerAccent2 {
-  bottom: -2px;
-  left: -2px;
-  border-bottom: 3px solid rgba(255, 213, 74, 0.6);
-  border-left: 3px solid rgba(255, 213, 74, 0.6);
-  border-bottom-left-radius: 16px;
-  animation: accentGlow 2s ease-in-out infinite 1s;
-}
-
-@keyframes accentGlow {
-  0%, 100% {
-    opacity: 0.6;
-    filter: drop-shadow(0 0 3px currentColor);
-  }
-  50% {
-    opacity: 1;
-    filter: drop-shadow(0 0 8px currentColor);
-  }
+  display: none;
 }
 
 /* Sparkle particles */

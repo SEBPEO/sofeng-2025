@@ -35,8 +35,6 @@ export function Login() {
           <h2>Medical AI Notetaker</h2>
           <span className={styles.tagline}>Intelligent Healthcare Documentation</span>
         </div>
-        <div className={styles.cornerAccent1}></div>
-        <div className={styles.cornerAccent2}></div>
         <div className={styles.sparkle1}></div>
         <div className={styles.sparkle2}></div>
         <div className={styles.sparkle3}></div>
