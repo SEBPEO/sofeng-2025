@@ -1,6 +1,6 @@
 import React from 'react';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
-import { login, dashboard } from '@/features';
+import { login, dashboard, profile } from '@/features';
 import { getAuthToken } from '@/store/auth/authApi';
 
 const Protected = ({ children }: { children: React.ReactNode }) => {
@@ -11,7 +11,7 @@ const Protected = ({ children }: { children: React.ReactNode }) => {
 // redirect to dashboard if already authenticated
 const Root = () => {
   const token = getAuthToken();
-  return token ? <Navigate to="/dashboard" replace /> : <login.pages.Login />;
+  return !token ? <login.pages.Login /> : <Navigate to="/dashboard" replace />;
 };
 
 const router = createBrowserRouter([
@@ -21,6 +21,14 @@ const router = createBrowserRouter([
     element: (
       <Protected>
         <dashboard.pages.Dashboard />
+      </Protected>
+    ),
+  },
+  {
+    path: '/profile',
+    element: (
+      <Protected>
+        <profile.pages.Profile.Profile />
       </Protected>
     ),
   },

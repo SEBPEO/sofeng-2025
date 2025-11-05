@@ -5,7 +5,8 @@
   --color-primary-700: #128d7a; /* teal -700 for hover/active */
   --color-secondary: #ffd166; /* yellow */
   --color-secondary-700: #f2b705; /* deeper yellow for hover/active */
-  --color-background: #f9f9f9;
+  --color-background: #fafaf5; /* light warm background */
+  --color-background-alt: #f5f9f8; /* light cool background */
   --color-surface: #ffffff;
   --color-text: #212121;
   --color-text-light: #757575;

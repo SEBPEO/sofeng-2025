@@ -1,0 +1,104 @@
+.container {
+  min-height: 100vh;
+  padding: var(--space-xl, 2rem) var(--space-md, 1rem);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  position: relative;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: 
+    0 8px 32px rgba(255, 209, 102, 0.1),
+    0 4px 16px rgba(242, 183, 5, 0.08);
+  max-width: 1200px;
+  width: 100%;
+  padding: var(--space-xl, 2rem);
+  margin: 2rem 0;
+  position: relative;
+  z-index: 1;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.header {
+  margin-bottom: var(--space-xl, 2rem);
+  text-align: center;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-text, #1f2937);
+  margin: 0 0 var(--space-sm, 0.75rem) 0;
+  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-700) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.loadingState {
+  text-align: center;
+  padding: var(--space-xl, 2rem);
+  font-size: 1.125rem;
+  color: #6b7280;
+}
+
+.errorBanner {
+  background-color: #fee2e2;
+  border: 1px solid #ef4444;
+  border-radius: var(--radius-md, 8px);
+  padding: var(--space-md, 1rem);
+  margin-bottom: var(--space-lg, 1.5rem);
+  color: #991b1b;
+  font-weight: 500;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl, 2rem);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--space-md, 1rem);
+}
+
+.actions button {
+  min-width: 200px;
+  padding: var(--space-md, 1rem) var(--space-lg, 1.5rem);
+  font-size: 1.125rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .container {
+    padding: var(--space-md, 1rem) var(--space-sm, 0.75rem);
+  }
+
+  .card {
+    padding: var(--space-lg, 1.5rem);
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .actions {
+    justify-content: stretch;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+}

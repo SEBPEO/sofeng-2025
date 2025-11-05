@@ -5,7 +5,7 @@
   flex-direction: column;
   gap: 1.25rem;
   min-height: 100vh;
-  background: var(--color-background);
+  position: relative;
 }
 
 .header {
@@ -13,6 +13,8 @@
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
+  position: relative;
+  z-index: 1;
 }
 
 .title {
@@ -38,6 +40,8 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 1rem;
+  position: relative;
+  z-index: 1;
 }
 
 .card {

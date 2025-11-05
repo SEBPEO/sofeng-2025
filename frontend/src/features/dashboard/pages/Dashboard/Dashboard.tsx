@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { clearAuthToken } from '@/store/auth/authApi';
 import styles from './Dashboard.module.css';
-import { Button } from '@/components';
+import { Button, MedicalBackground } from '@/components';
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -13,11 +13,12 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className={styles.container}>
+      <MedicalBackground variant="light" />
       <header className={styles.header}>
         <div>
-          <h1 className={styles.title}>Dashboard</h1>
+          <h1 className={styles.title}>Dashboard </h1>
           <div className={styles.subtitle}>
-            Welcome back — here's a quick overview of your workspace.
+            Welcome back — here's a quick overview of your workspace. THERE SHOULD BE MAIN PAGE KOSTYA ^_^ 
           </div>
         </div>
 

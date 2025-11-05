@@ -1,5 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UserResponseDto } from './dto/user-response.dto';
 
 export type User = {
   id: string;
@@ -25,6 +27,152 @@ export class UsersService {
 
   async findDbById(id: string) {
     return await prisma.user.findUnique({ where: { user_id: id } });
+  }
+
+  async findByIdWithProfiles(id: string): Promise<UserResponseDto | null> {
+    const user = await prisma.user.findUnique({
+      where: { user_id: id },
+      include: {
+        doctor_profile: true,
+        patient_profile: true,
+      },
+    });
+
+    if (!user) return null;
+
+    return this.mapToUserResponse(user);
+  }
+
+  async updateProfile(userId: string, dto: UpdateProfileDto): Promise<UserResponseDto> {
+    // First, update the user basic info
+    const updateData: any = {};
+    if (dto.first_name) updateData.first_name = dto.first_name;
+    if (dto.last_name) updateData.last_name = dto.last_name;
+    if (dto.gender) updateData.gender = dto.gender;
+    if (dto.role) updateData.role = dto.role;
+
+    const user = await prisma.user.update({
+      where: { user_id: userId },
+      data: updateData,
+      include: {
+        doctor_profile: true,
+        patient_profile: true,
+      },
+    });
+
+    // Create or update role-specific profile
+    if (dto.role === 'doctor') {
+      await this.createOrUpdateDoctorProfile(userId, dto);
+    } else if (dto.role === 'patient') {
+      await this.createOrUpdatePatientProfile(userId, dto);
+    }
+
+    // Fetch updated user with profiles
+    const updatedUser = await prisma.user.findUnique({
+      where: { user_id: userId },
+      include: {
+        doctor_profile: true,
+        patient_profile: true,
+      },
+    });
+
+    return this.mapToUserResponse(updatedUser!);
+  }
+
+  private async createOrUpdateDoctorProfile(userId: string, dto: UpdateProfileDto) {
+    if (!dto.specialization || !dto.clinic_address) {
+      throw new BadRequestException('Specialization and clinic address are required for doctors');
+    }
+
+    const existing = await prisma.doctorProfile.findUnique({
+      where: { user_id: userId },
+    });
+
+    if (existing) {
+      await prisma.doctorProfile.update({
+        where: { user_id: userId },
+        data: {
+          specialization: dto.specialization,
+          experience_years: dto.experience_years,
+          clinic_address: dto.clinic_address,
+          contact_info: dto.contact_info,
+          working_hours: dto.working_hours,
+        },
+      });
+    } else {
+      // Get the next available doctor_id
+      const maxDoctor = await prisma.doctorProfile.findFirst({
+        orderBy: { doctor_id: 'desc' },
+      });
+      const nextId = (maxDoctor?.doctor_id || 0) + 1;
+
+      await prisma.doctorProfile.create({
+        data: {
+          doctor_id: nextId,
+          user_id: userId,
+          specialization: dto.specialization,
+          experience_years: dto.experience_years,
+          clinic_address: dto.clinic_address,
+          contact_info: dto.contact_info,
+          working_hours: dto.working_hours,
+        },
+      });
+    }
+  }
+
+  private async createOrUpdatePatientProfile(userId: string, dto: UpdateProfileDto) {
+    const existing = await prisma.patientProfile.findUnique({
+      where: { user_id: userId },
+    });
+
+    if (existing) {
+      await prisma.patientProfile.update({
+        where: { user_id: userId },
+        data: {
+          date_of_birth: dto.date_of_birth ? new Date(dto.date_of_birth) : null,
+          emergency_contact: dto.emergency_contact,
+          conditions: dto.conditions,
+          medications: dto.medications,
+          allergy: dto.allergy,
+        },
+      });
+    } else {
+      // Get the next available patient_id
+      const maxPatient = await prisma.patientProfile.findFirst({
+        orderBy: { patient_id: 'desc' },
+      });
+      const nextId = (maxPatient?.patient_id || 0) + 1;
+
+      await prisma.patientProfile.create({
+        data: {
+          patient_id: nextId,
+          user_id: userId,
+          date_of_birth: dto.date_of_birth ? new Date(dto.date_of_birth) : null,
+          emergency_contact: dto.emergency_contact,
+          conditions: dto.conditions,
+          medications: dto.medications,
+          allergy: dto.allergy,
+        },
+      });
+    }
+  }
+
+  private mapToUserResponse(user: any): UserResponseDto {
+    const profileCompleted = !!(user.doctor_profile || user.patient_profile);
+    
+    return {
+      user_id: user.user_id,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      gender: user.gender,
+      email: user.email,
+      role: user.role,
+      createdAt: user.createdAt,
+      lastLogin: user.lastLogin,
+      profileCompleted,
+      doctor_profile: user.doctor_profile,
+      patient_profile: user.patient_profile,
+    };
   }
 
   async upsertGoogle(profile: {
