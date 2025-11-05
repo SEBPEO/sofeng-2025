@@ -16,9 +16,9 @@ export const Dashboard: React.FC = () => {
       <MedicalBackground variant="light" />
       <header className={styles.header}>
         <div>
-          <h1 className={styles.title}>Dashboard</h1>
+          <h1 className={styles.title}>Dashboard </h1>
           <div className={styles.subtitle}>
-            Welcome back — here's a quick overview of your workspace.
+            Welcome back — here's a quick overview of your workspace. THERE SHOULD BE MAIN PAGE KOSTYA ^_^ 
           </div>
         </div>
 
