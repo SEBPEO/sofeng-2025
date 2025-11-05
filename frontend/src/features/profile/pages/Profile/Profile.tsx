@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { getUserByJwt, updateUserProfile, type UpdateProfilePayload } from '@/store/user/userApi';
-import { Button } from '@/components';
+import { Button, MedicalBackground } from '@/components';
 import {
   PersonalInfoSection,
   RoleSelectionSection,
@@ -128,6 +128,7 @@ export const Profile = () => {
   if (loading) {
     return (
       <div className={styles.container}>
+        <MedicalBackground />
         <div className={styles.loadingState}>Loading your profile...</div>
       </div>
     );
@@ -135,6 +136,7 @@ export const Profile = () => {
 
   return (
     <div className={styles.container}>
+      <MedicalBackground />
       <div className={styles.card}>
         <div className={styles.header}>
           <h1 className={styles.title}>Complete Your Profile</h1>

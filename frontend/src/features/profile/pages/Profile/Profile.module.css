@@ -1,22 +1,26 @@
 .container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   padding: var(--space-xl, 2rem) var(--space-md, 1rem);
   display: flex;
   justify-content: center;
   align-items: flex-start;
+  position: relative;
 }
 
 .card {
-  background: white;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
   border-radius: var(--radius-lg, 12px);
   box-shadow: 
-    0 4px 6px rgba(0, 0, 0, 0.05),
-    0 10px 20px rgba(0, 0, 0, 0.08);
-  max-width: 800px;
+    0 8px 32px rgba(255, 209, 102, 0.1),
+    0 4px 16px rgba(242, 183, 5, 0.08);
+  max-width: 1200px;
   width: 100%;
   padding: var(--space-xl, 2rem);
   margin: 2rem 0;
+  position: relative;
+  z-index: 1;
+  border: 1px solid rgba(255, 255, 255, 0.6);
 }
 
 .header {

@@ -10,3 +10,6 @@ export type { SelectProps, SelectOption } from './Select';
 
 export { RadioGroup } from './RadioGroup';
 export type { RadioGroupProps, RadioOption } from './RadioGroup';
+
+// Background Components
+export { MedicalBackground } from './MedicalBackground';
