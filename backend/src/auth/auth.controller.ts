@@ -21,11 +21,7 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleCallback(@Req() req, @Res() res) {
-
     const { token, profileCompleted } = await this.auth.handleGoogleLogin(req.user);
-    // For now: redirect to front with token in URL (later: cookie)
-
-
     const frontend = this.cfg.get('FRONTEND_URL');
     return res.redirect(`${frontend}/oauth/callback?token=${token}&profileCompleted=${profileCompleted}`);
   }

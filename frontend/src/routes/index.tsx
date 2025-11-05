@@ -11,7 +11,7 @@ const Protected = ({ children }: { children: React.ReactNode }) => {
 // redirect to dashboard if already authenticated
 const Root = () => {
   const token = getAuthToken();
-  return token ? <Navigate to="/dashboard" replace /> : <login.pages.Login />;
+  return !token ? <login.pages.Login /> : <Navigate to="/dashboard" replace />;
 };
 
 const router = createBrowserRouter([
