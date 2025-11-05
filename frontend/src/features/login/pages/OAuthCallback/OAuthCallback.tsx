@@ -9,10 +9,17 @@ export const OAuthCallback: React.FC = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
+    const profileCompleted = params.get('profileCompleted');
 
     if (token) {
       setAuthToken(token);
-      navigate('/dashboard', { replace: true });
+      
+      // Redirect to profile page if not completed, otherwise to dashboard
+      if (profileCompleted === 'false') {
+        navigate('/profile', { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
     } else {
       navigate('/', { replace: true });
     }

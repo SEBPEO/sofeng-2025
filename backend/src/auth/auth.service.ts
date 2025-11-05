@@ -14,8 +14,18 @@ export class AuthService {
       picture: googleUser.picture,
     });
 
-    const payload = { sub: user.id, email: user.email, name: user.name, picture: user.picture };
+    // Check if profile is completed
+    const userWithProfiles = await this.users.findByIdWithProfiles(user.id);
+    const profileCompleted = userWithProfiles?.profileCompleted || false;
+
+    const payload = { 
+      sub: user.id, 
+      email: user.email, 
+      name: user.name, 
+      picture: user.picture,
+      profileCompleted,
+    };
     const token = await this.jwt.signAsync(payload);
-    return { token, user };
+    return { token, user, profileCompleted };
   }
 }

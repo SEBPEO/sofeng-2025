@@ -1,6 +1,6 @@
 import React from 'react';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
-import { login, dashboard } from '@/features';
+import { login, dashboard, profile } from '@/features';
 import { getAuthToken } from '@/store/auth/authApi';
 
 const Protected = ({ children }: { children: React.ReactNode }) => {
@@ -21,6 +21,14 @@ const router = createBrowserRouter([
     element: (
       <Protected>
         <dashboard.pages.Dashboard />
+      </Protected>
+    ),
+  },
+  {
+    path: '/profile',
+    element: (
+      <Protected>
+        <profile.pages.Profile.Profile />
       </Protected>
     ),
   },

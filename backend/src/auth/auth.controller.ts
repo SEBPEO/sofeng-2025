@@ -22,12 +22,12 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   async googleCallback(@Req() req, @Res() res) {
 
-    const { token } = await this.auth.handleGoogleLogin(req.user);
+    const { token, profileCompleted } = await this.auth.handleGoogleLogin(req.user);
     // For now: redirect to front with token in URL (later: cookie)
 
 
     const frontend = this.cfg.get('FRONTEND_URL');
-    return res.redirect(`${frontend}/oauth/callback?token=${token}`);
+    return res.redirect(`${frontend}/oauth/callback?token=${token}&profileCompleted=${profileCompleted}`);
   }
 
   @Get('me')
@@ -48,8 +48,8 @@ export class AuthController {
   @Get('github/callback')
   @UseGuards(AuthGuard('github'))
   async githubCallback(@Req() req, @Res() res) {
-    const { token } = await this.auth.handleGoogleLogin(req.user);
+    const { token, profileCompleted } = await this.auth.handleGoogleLogin(req.user);
     const frontend = this.cfg.get('FRONTEND_URL');
-    return res.redirect(`${frontend}/oauth/callback?token=${token}`);
+    return res.redirect(`${frontend}/oauth/callback?token=${token}&profileCompleted=${profileCompleted}`);
   }
 }
