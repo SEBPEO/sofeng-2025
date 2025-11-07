@@ -44,12 +44,42 @@ export class UsersService {
   }
 
   async updateProfile(userId: string, dto: UpdateProfileDto): Promise<UserResponseDto> {
+    // Get current user to check if role is already set
+    const currentUser = await prisma.user.findUnique({
+      where: { user_id: userId },
+      include: {
+        doctor_profile: true,
+        patient_profile: true,
+      },
+    });
+
+    if (!currentUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Check if user already has a profile (role is locked)
+    const hasExistingProfile = !!(currentUser.doctor_profile || currentUser.patient_profile);
+
+    // If user has existing profile and tries to change role, reject it
+    if (hasExistingProfile && dto.role && dto.role !== currentUser.role) {
+      throw new BadRequestException('Role cannot be changed after registration');
+    }
+
     // First, update the user basic info
     const updateData: any = {};
     if (dto.first_name) updateData.first_name = dto.first_name;
     if (dto.last_name) updateData.last_name = dto.last_name;
     if (dto.gender) updateData.gender = dto.gender;
-    if (dto.role) updateData.role = dto.role;
+    // Only update role if it's provided and user doesn't have existing profile
+    if (dto.role && !hasExistingProfile) {
+      updateData.role = dto.role;
+    } else if (dto.role && hasExistingProfile) {
+      // Use existing role if profile exists
+      updateData.role = currentUser.role;
+    } else if (!hasExistingProfile && !dto.role) {
+      // Role is required for new profiles
+      throw new BadRequestException('Role is required');
+    }
 
     const user = await prisma.user.update({
       where: { user_id: userId },
@@ -60,10 +90,13 @@ export class UsersService {
       },
     });
 
+    // Determine which role to use for profile creation/update
+    const roleToUse = hasExistingProfile ? currentUser.role : (dto.role || currentUser.role);
+
     // Create or update role-specific profile
-    if (dto.role === 'doctor') {
+    if (roleToUse === 'doctor') {
       await this.createOrUpdateDoctorProfile(userId, dto);
-    } else if (dto.role === 'patient') {
+    } else if (roleToUse === 'patient') {
       await this.createOrUpdatePatientProfile(userId, dto);
     }
 
@@ -159,7 +192,7 @@ export class UsersService {
 
   private mapToUserResponse(user: any): UserResponseDto {
     const profileCompleted = !!(user.doctor_profile || user.patient_profile);
-    
+
     return {
       user_id: user.user_id,
       first_name: user.first_name,

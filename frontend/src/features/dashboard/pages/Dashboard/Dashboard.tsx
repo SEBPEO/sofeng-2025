@@ -10,6 +10,9 @@ export const Dashboard: React.FC = () => {
     clearAuthToken();
     navigate('/', { replace: true });
   };
+  const handleProfile = () => {
+    navigate('/profile');
+  };
 
   return (
     <div className={styles.container}>
@@ -18,11 +21,14 @@ export const Dashboard: React.FC = () => {
         <div>
           <h1 className={styles.title}>Dashboard </h1>
           <div className={styles.subtitle}>
-            Welcome back — here's a quick overview of your workspace. THERE SHOULD BE MAIN PAGE KOSTYA ^_^ 
+            Welcome back — here's a quick overview of your workspace. THERE SHOULD BE MAIN PAGE KOSTYA ^_^
           </div>
         </div>
 
         <div className={styles.actions}>
+          <Button variant="secondary" onClick={handleProfile}>
+            Profile
+          </Button>
           <Button variant="primary" onClick={handleLogout}>
             Logout
           </Button>

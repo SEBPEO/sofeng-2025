@@ -15,7 +15,8 @@ export class UpdateProfileDto {
   gender?: Gender;
 
   @IsEnum(Role)
-  role: Role;
+  @IsOptional()
+  role?: Role;
 
   // Doctor-specific fields
   @IsString()
