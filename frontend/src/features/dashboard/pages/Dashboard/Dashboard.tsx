@@ -1,59 +1,87 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { clearAuthToken } from '@/store/auth/authApi';
 import styles from './Dashboard.module.css';
-import { Button, MedicalBackground } from '@/components';
+import { Logo } from '@/components/icons/Logo';
+import { Button } from '@/components/Button/Button';
+import { MedicalBackground } from '@/components/MedicalBackground/MedicalBackground';
+import { clearAuthToken } from '@/store/auth/authApi';
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const [collapsed, setCollapsed] = useState(false);
+
   const handleLogout = () => {
     clearAuthToken();
     navigate('/', { replace: true });
   };
 
+  const goToClients = () => navigate('/clients');
+  const goToProfile = () => navigate('/profile');
+
+  const toggleSidebar = () => setCollapsed((s) => !s);
+
   return (
-    <div className={styles.container}>
-      <MedicalBackground variant="light" />
-      <header className={styles.header}>
-        <div>
-          <h1 className={styles.title}>Dashboard </h1>
-          <div className={styles.subtitle}>
-            Welcome back — here's a quick overview of your workspace. THERE SHOULD BE MAIN PAGE KOSTYA ^_^ 
-          </div>
+    <div className={styles.app}>
+      <aside className={`${styles.sidebar} ${collapsed ? styles.collapsed : ''}`}>
+        <div className={styles.brand}>
+          <Logo />
+          <span className={styles.brandText}>DocNotes</span>
         </div>
 
-        <div className={styles.actions}>
-          <Button variant="primary" onClick={handleLogout}>
-            Logout
-          </Button>
-        </div>
-      </header>
+        <nav className={styles.nav}>
+          <button className={styles.navItem} onClick={goToClients} aria-label="Clients">
+            <span className={styles.navIcon}>👥</span>
+            <span className={styles.navLabel}>Patients</span>
+          </button>
 
-      <section className={styles.statsGrid} aria-label="Key metrics">
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div className={styles.label}>Active users</div>
-          </div>
-          <div className={styles.value}>1,248</div>
-          <div className={styles.smallMuted}>Last 30 days</div>
-        </div>
+          <button className={styles.navItem} onClick={goToProfile} aria-label="Profile">
+            <span className={styles.navIcon}>⚙️</span>
+            <span className={styles.navLabel}>Profile</span>
+          </button>
 
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div className={styles.label}>Projects</div>
-          </div>
-          <div className={styles.value}>42</div>
-          <div className={styles.smallMuted}>Active</div>
+          <button className={styles.navItem} aria-label="Legal">
+            <span className={styles.navIcon}>📄</span>
+            <span className={styles.navLabel}>Legal</span>
+          </button>
+        </nav>
+
+        <div className={styles.sidebarFooter}>
+          <button className={styles.logout} onClick={handleLogout}>Logout</button>
         </div>
 
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div className={styles.label}>Revenue</div>
+        
+      </aside>
+
+      
+      <main className={styles.main}>
+        <MedicalBackground variant="light" />
+
+        <div className={styles.container}>
+          <div className={styles.card}>
+            <div className={styles.cardContent}>
+              <div>
+                <h2 className={styles.name}>Galileo Galilei</h2>
+                <div className={styles.meta}>
+                  <div>Total Sessions: <strong>0</strong></div>
+                  <div>Last Session:</div>
+                </div>
+              </div>
+
+              <button className={styles.arrow} aria-hidden>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            </div>
           </div>
-          <div className={styles.value}>$12.5k</div>
-          <div className={styles.smallMuted}>This month</div>
+
+          <button className={styles.addClient} onClick={goToClients}>
+            <span className={styles.plus}>+</span> new patient
+          </button>
         </div>
-      </section>
+      </main>
     </div>
   );
 };
+
+export default Dashboard;

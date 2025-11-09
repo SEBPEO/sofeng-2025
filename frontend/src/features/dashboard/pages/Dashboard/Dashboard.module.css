@@ -78,3 +78,196 @@
   color: var(--color-text-light);
   font-size: 0.85rem;
 }
+
+/* App */
+.app {
+  display: flex;
+  min-height: 100vh;
+  background: #eef9ff; 
+  font-family: var(--font-family-base, Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial);
+  color: var(--color-text, #0f172a);
+}
+
+/* Sidebar */
+.sidebar {
+  width: 220px;
+  min-width: 220px;
+  background: #ffffff;
+  border-right: 1px solid rgba(15, 23, 42, 0.04);
+  display: flex;
+  flex-direction: column;
+  padding: 24px 20px;
+  box-sizing: border-box;
+  gap: 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.brandText {
+  font-weight: 700;
+  color: var(--color-primary, #0ea5a4);
+  font-size: 20px;
+}
+
+/* Navigation */
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 10px;
+  background: transparent;
+  border: none;
+  color: rgba(15, 23, 42, 0.8);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.navItem:hover {
+  background: rgba(14, 165, 164, 0.06);
+}
+
+.navIcon {
+  width: 22px;
+  text-align: center;
+  font-size: 16px;
+  color: var(--color-primary, #0ea5a4);
+}
+
+/* Sidebar footer (logout) */
+.sidebarFooter {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid rgba(15, 23, 42, 0.03);
+}
+
+.logout {
+  border: none;
+  background: transparent;
+  color: rgba(15, 23, 42, 0.7);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 12px 8px;
+  width: 100%;
+  text-align: left;
+}
+
+/* Main area */
+.main {
+  flex: 1;
+  padding: 40px 56px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Content container to center at top-left  */
+.container {
+  max-width: 980px;
+}
+
+/* Card */
+.card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 22px rgba(2,6,23,0.06);
+  border: 1px solid rgba(15,23,42,0.04);
+  padding: 22px 28px;
+  overflow: hidden;
+}
+
+.cardContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.name {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  color: var(--color-primary, #0ea5a4);
+  font-weight: 700;
+}
+
+.meta {
+  color: rgba(15, 23, 42, 0.7);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Right arrow */
+.arrow {
+  background: transparent;
+  border: none;
+  color: var(--color-primary, #0ea5a4);
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.arrow:hover {
+  background: rgba(14,165,164,0.06);
+}
+
+/* "+ new client" link */
+.addClient {
+  margin-top: 18px;
+  background: transparent;
+  border: none;
+  color: var(--color-primary, #0ea5a4);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 8px;
+}
+
+.plus {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-primary, #0ea5a4);
+  font-size: 18px;
+  line-height: 18px;
+  text-align: center;
+}
+
+/* Ensure MedicalBackground sits behind content */
+.main > :global(.background),
+.main > :global(.decorativeSvg) {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.container, .card, .addClient {
+  position: relative;
+  z-index: 1;
+}
+
+/* small responsive tweaks */
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .main { padding: 20px; }
+}
