@@ -11,6 +11,9 @@ export const Dashboard: React.FC = () => {
     clearAuthToken();
     navigate('/', { replace: true });
   };
+  const handleProfile = () => {
+    navigate('/profile');
+  };
 
   const goToPatients = () => navigate('/patients');
   const goToProfile = () => navigate('/profile');

@@ -26,16 +26,22 @@
   border: 2px solid rgba(0, 0, 0, 0.1);
   border-radius: var(--radius-md, 8px);
   cursor: pointer;
-  transition: 
+  transition:
     border-color 0.2s ease,
     background-color 0.2s ease,
     box-shadow 0.2s ease;
   background-color: #fff;
 }
 
-.option:hover {
+.option:hover:not(.disabled) {
   border-color: rgba(23, 181, 163, 0.3);
   background-color: rgba(23, 181, 163, 0.02);
+}
+
+.option.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .option.selected {

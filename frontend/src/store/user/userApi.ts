@@ -14,7 +14,7 @@ export interface UpdateProfilePayload {
   first_name?: string;
   last_name?: string;
   gender?: 'male' | 'female';
-  role: 'doctor' | 'patient';
+  role?: 'doctor' | 'patient';
   // Doctor fields
   specialization?: string;
   experience_years?: number;

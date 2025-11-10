@@ -6,9 +6,10 @@ interface RoleSelectionSectionProps {
   watch: UseFormWatch<any>;
   setValue: UseFormSetValue<any>;
   errors: FieldErrors<any>;
+  disabled?: boolean;
 }
 
-export const RoleSelectionSection = ({ watch, setValue, errors }: RoleSelectionSectionProps) => {
+export const RoleSelectionSection = ({ watch, setValue, errors, disabled }: RoleSelectionSectionProps) => {
   return (
     <section className={styles.section}>
       <h2 className={styles.sectionTitle}>Role Selection</h2>
@@ -30,7 +31,13 @@ export const RoleSelectionSection = ({ watch, setValue, errors }: RoleSelectionS
           },
         ]}
         error={errors.role?.message as string}
+        disabled={disabled}
       />
+      {disabled && (
+        <p className={styles.disabledNote}>
+          Your role cannot be changed after registration.
+        </p>
+      )}
     </section>
   );
 };
