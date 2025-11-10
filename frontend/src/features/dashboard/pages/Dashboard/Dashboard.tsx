@@ -1,35 +1,32 @@
-import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Dashboard.module.css';
 import { Logo } from '@/components/icons/Logo';
-import { Button } from '@/components/Button/Button';
 import { MedicalBackground } from '@/components/MedicalBackground/MedicalBackground';
 import { clearAuthToken } from '@/store/auth/authApi';
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [collapsed, setCollapsed] = useState(false);
-
+  
   const handleLogout = () => {
     clearAuthToken();
     navigate('/', { replace: true });
   };
 
-  const goToClients = () => navigate('/clients');
+  const goToPatients = () => navigate('/patients');
   const goToProfile = () => navigate('/profile');
 
-  const toggleSidebar = () => setCollapsed((s) => !s);
+  
 
   return (
     <div className={styles.app}>
-      <aside className={`${styles.sidebar} ${collapsed ? styles.collapsed : ''}`}>
+      <aside className={`${styles.sidebar} `}>
         <div className={styles.brand}>
           <Logo />
           <span className={styles.brandText}>DocNotes</span>
         </div>
 
         <nav className={styles.nav}>
-          <button className={styles.navItem} onClick={goToClients} aria-label="Clients">
+          <button className={styles.navItem} onClick={goToPatients} aria-label="Patients">
             <span className={styles.navIcon}>👥</span>
             <span className={styles.navLabel}>Patients</span>
           </button>
@@ -75,7 +72,7 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          <button className={styles.addClient} onClick={goToClients}>
+          <button className={styles.addPatient} onClick={goToPatients}>
             <span className={styles.plus}>+</span> new patient
           </button>
         </div>
