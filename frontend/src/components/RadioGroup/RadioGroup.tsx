@@ -14,10 +14,11 @@ export interface RadioGroupProps {
   value?: string;
   onChange?: (value: string) => void;
   error?: string;
+  disabled?: boolean;
 }
 
 export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
-  ({ name, label, options, value, onChange, error }, ref) => {
+  ({ name, label, options, value, onChange, error, disabled }, ref) => {
     return (
       <div className={styles.wrapper} ref={ref}>
         {label && <label className={styles.label}>{label}</label>}
@@ -25,7 +26,7 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
           {options.map((option) => (
             <label
               key={option.value}
-              className={`${styles.option} ${value === option.value ? styles.selected : ''}`}
+              className={`${styles.option} ${value === option.value ? styles.selected : ''} ${disabled ? styles.disabled : ''}`}
             >
               <input
                 type="radio"
@@ -34,6 +35,7 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
                 checked={value === option.value}
                 onChange={(e) => onChange?.(e.target.value)}
                 className={styles.radio}
+                disabled={disabled}
               />
               <div className={styles.optionContent}>
                 <span className={styles.optionLabel}>{option.label}</span>

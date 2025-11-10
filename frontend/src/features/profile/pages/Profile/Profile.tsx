@@ -35,6 +35,7 @@ export const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [initialRole, setInitialRole] = useState<'doctor' | 'patient' | null>(null);
 
   const {
     register,
@@ -45,6 +46,8 @@ export const Profile = () => {
   } = useForm<ProfileFormData>();
 
   const selectedRole = watch('role');
+  // Role is locked if user already has a profile (doctor_profile or patient_profile)
+  const isRoleLocked = initialRole !== null;
 
   useEffect(() => {
     loadUserData();
@@ -59,7 +62,13 @@ export const Profile = () => {
       if (user.first_name) setValue('first_name', user.first_name);
       if (user.last_name) setValue('last_name', user.last_name);
       if (user.gender) setValue('gender', user.gender);
-      if (user.role) setValue('role', user.role);
+      if (user.role) {
+        setValue('role', user.role);
+        // If user has a profile, role is already set and cannot be changed
+        if (user.doctor_profile || user.patient_profile) {
+          setInitialRole(user.role as 'doctor' | 'patient');
+        }
+      }
 
       // Pre-fill doctor profile if exists
       if (user.doctor_profile) {
@@ -94,20 +103,25 @@ export const Profile = () => {
       setSubmitting(true);
       setError(null);
 
+      // Determine which role to use for field selection
+      const roleToUse = isRoleLocked ? initialRole : data.role;
+
       const payload: UpdateProfilePayload = {
         first_name: data.first_name,
         last_name: data.last_name,
         gender: data.gender,
-        role: data.role,
+        // Only include role if it's not locked (first time registration)
+        // If role is locked, don't send it - backend will use existing role
+        ...(isRoleLocked ? {} : { role: data.role }),
       };
 
-      if (data.role === 'doctor') {
+      if (roleToUse === 'doctor') {
         payload.specialization = data.specialization;
         payload.experience_years = data.experience_years;
         payload.clinic_address = data.clinic_address;
         payload.contact_info = data.contact_info;
         payload.working_hours = data.working_hours;
-      } else {
+      } else if (roleToUse === 'patient') {
         payload.date_of_birth = data.date_of_birth;
         payload.emergency_contact = data.emergency_contact;
         payload.conditions = data.conditions;
@@ -152,7 +166,12 @@ export const Profile = () => {
           <PersonalInfoSection register={register} errors={errors} />
 
           {/* Role Selection Section */}
-          <RoleSelectionSection watch={watch} setValue={setValue} errors={errors} />
+          <RoleSelectionSection
+            watch={watch}
+            setValue={setValue}
+            errors={errors}
+            disabled={isRoleLocked}
+          />
 
           {/* Conditional Doctor Fields */}
           <DoctorInfoSection
