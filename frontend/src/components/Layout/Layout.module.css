@@ -1,0 +1,120 @@
+.app {
+  display: flex;
+  min-height: 100vh;
+  background: #eef9ff;
+  font-family: var(--font-family-base, Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial);
+  color: var(--color-text, #0f172a);
+}
+
+/* Sidebar */
+.sidebar {
+  width: 220px;
+  min-width: 220px;
+  background: #ffffff;
+  border-right: 1px solid rgba(15, 23, 42, 0.04);
+  display: flex;
+  flex-direction: column;
+  padding: 24px 20px;
+  box-sizing: border-box;
+  gap: 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.brandText {
+  font-weight: 700;
+  color: var(--color-primary, #0ea5a4);
+  font-size: 20px;
+}
+
+/* Navigation */
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 10px;
+  background: transparent;
+  border: none;
+  color: rgba(15, 23, 42, 0.8);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.navItem:hover,
+.navItem.active {
+  background: rgba(14, 165, 164, 0.06);
+}
+
+.navIcon {
+  width: 22px;
+  text-align: center;
+  font-size: 16px;
+  color: var(--color-primary, #0ea5a4);
+}
+
+.navLabel {
+  flex: 1;
+}
+
+/* Sidebar footer */
+.sidebarFooter {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid rgba(15, 23, 42, 0.03);
+}
+
+.logout {
+  border: none;
+  background: transparent;
+  color: rgba(15, 23, 42, 0.7);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 12px 8px;
+  width: 100%;
+  text-align: left;
+  transition: color 0.2s ease;
+}
+
+.logout:hover {
+  color: rgba(15, 23, 42, 1);
+}
+
+/* Main content area */
+.main {
+  flex: 1;
+  padding: 40px 56px;
+  position: relative;
+  overflow: hidden;
+}
+
+.content {
+  max-width: 980px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .sidebar {
+    display: none;
+  }
+
+  .main {
+    padding: 20px;
+  }
+}

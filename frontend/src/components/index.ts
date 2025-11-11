@@ -13,3 +13,6 @@ export type { RadioGroupProps, RadioOption } from './RadioGroup';
 
 // Background Components
 export { MedicalBackground } from './MedicalBackground';
+
+// Layout Components
+export { Layout } from './Layout';

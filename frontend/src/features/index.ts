@@ -1,5 +1,6 @@
-import * as dashboard from './dashboard';
 import * as login from './login';
+import * as patients from './patients';
+import * as legal from './legal';
 import * as profile from './profile';
 
-export { dashboard, login, profile };
+export { login, patients, legal, profile };
