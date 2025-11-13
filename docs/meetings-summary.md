@@ -10,13 +10,13 @@ The topics are:
 - Everyone is responsible for all commits and can take on any task they want
 
 Given that, here are the roles and what each person can (and will) primarily work on based on previous experience and expertiese:
-| Name | frontend | backend | database | security | deplyment | testing | documentation |
+| Name | frontend | backend | database | security | deployment | testing | documentation |
 | ---- | -------- | ------- | -------- | -------- | --------- | ------- | ------------- |
 |Kostiantyn| | x | | | | | x |
 |Ernest| | | | x | x | x | x |
 |Maksym| | | x | | | x | x |
 |Mykola| x | x | | | x | | x |
-|Oleksandra| x | | | | | | x |
+|Oleksandra| x | | | | | x | x |
 |Luka| | | x | | | x | x |
 
 Note that everybody writes docs, but some people might not do commits since it would be more efficient to consult someone else.
