@@ -1,7 +1,7 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UserResponseDto } from './dto/user-response.dto';
+import { PrismaService } from '../prisma/prisma.service';
 
 export type User = {
   id: string;
@@ -11,26 +11,26 @@ export type User = {
   provider: 'google' | string;
 };
 
-const prisma = new PrismaClient();
-
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
+  constructor(private prisma: PrismaService) {}
+
   async findByEmail(email: string) {
-    return await prisma.user.findUnique({ where: { email } });
+    return await this.prisma.user.findUnique({ where: { email } });
   }
 
   async findById(id: string) {
-    return await prisma.user.findUnique({ where: { user_id: id } });
+    return await this.prisma.user.findUnique({ where: { user_id: id } });
   }
 
   async findDbById(id: string) {
-    return await prisma.user.findUnique({ where: { user_id: id } });
+    return await this.prisma.user.findUnique({ where: { user_id: id } });
   }
 
   async findByIdWithProfiles(id: string): Promise<UserResponseDto | null> {
-    const user = await prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { user_id: id },
       include: {
         doctor_profile: true,
@@ -45,7 +45,7 @@ export class UsersService {
 
   async updateProfile(userId: string, dto: UpdateProfileDto): Promise<UserResponseDto> {
     // Get current user to check if role is already set
-    const currentUser = await prisma.user.findUnique({
+    const currentUser = await this.prisma.user.findUnique({
       where: { user_id: userId },
       include: {
         doctor_profile: true,
@@ -81,7 +81,7 @@ export class UsersService {
       throw new BadRequestException('Role is required');
     }
 
-    const user = await prisma.user.update({
+    const user = await this.prisma.user.update({
       where: { user_id: userId },
       data: updateData,
       include: {
@@ -91,7 +91,7 @@ export class UsersService {
     });
 
     // Determine which role to use for profile creation/update
-    const roleToUse = hasExistingProfile ? currentUser.role : (dto.role || currentUser.role);
+    const roleToUse = hasExistingProfile ? currentUser.role : dto.role || currentUser.role;
 
     // Create or update role-specific profile
     if (roleToUse === 'doctor') {
@@ -101,7 +101,7 @@ export class UsersService {
     }
 
     // Fetch updated user with profiles
-    const updatedUser = await prisma.user.findUnique({
+    const updatedUser = await this.prisma.user.findUnique({
       where: { user_id: userId },
       include: {
         doctor_profile: true,
@@ -117,12 +117,12 @@ export class UsersService {
       throw new BadRequestException('Specialization and clinic address are required for doctors');
     }
 
-    const existing = await prisma.doctorProfile.findUnique({
+    const existing = await this.prisma.doctorProfile.findUnique({
       where: { user_id: userId },
     });
 
     if (existing) {
-      await prisma.doctorProfile.update({
+      await this.prisma.doctorProfile.update({
         where: { user_id: userId },
         data: {
           specialization: dto.specialization,
@@ -134,12 +134,12 @@ export class UsersService {
       });
     } else {
       // Get the next available doctor_id
-      const maxDoctor = await prisma.doctorProfile.findFirst({
+      const maxDoctor = await this.prisma.doctorProfile.findFirst({
         orderBy: { doctor_id: 'desc' },
       });
       const nextId = (maxDoctor?.doctor_id || 0) + 1;
 
-      await prisma.doctorProfile.create({
+      await this.prisma.doctorProfile.create({
         data: {
           doctor_id: nextId,
           user_id: userId,
@@ -154,12 +154,12 @@ export class UsersService {
   }
 
   private async createOrUpdatePatientProfile(userId: string, dto: UpdateProfileDto) {
-    const existing = await prisma.patientProfile.findUnique({
+    const existing = await this.prisma.patientProfile.findUnique({
       where: { user_id: userId },
     });
 
     if (existing) {
-      await prisma.patientProfile.update({
+      await this.prisma.patientProfile.update({
         where: { user_id: userId },
         data: {
           date_of_birth: dto.date_of_birth ? new Date(dto.date_of_birth) : null,
@@ -171,12 +171,12 @@ export class UsersService {
       });
     } else {
       // Get the next available patient_id
-      const maxPatient = await prisma.patientProfile.findFirst({
+      const maxPatient = await this.prisma.patientProfile.findFirst({
         orderBy: { patient_id: 'desc' },
       });
       const nextId = (maxPatient?.patient_id || 0) + 1;
 
-      await prisma.patientProfile.create({
+      await this.prisma.patientProfile.create({
         data: {
           patient_id: nextId,
           user_id: userId,
@@ -208,12 +208,7 @@ export class UsersService {
     };
   }
 
-  async upsertGoogle(profile: {
-    id: string;
-    email: string;
-    name?: string;
-    picture?: string;
-  }) {
+  async upsertGoogle(profile: { id: string; email: string; name?: string; picture?: string }) {
     // Split display name into first/last
     const name = profile.name ?? '';
     const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -224,7 +219,7 @@ export class UsersService {
     // We'll choose sensible defaults: role='patient' and gender='male' when missing.
     // NOTE: adjust these defaults if your app needs different values or a migration to nullable fields.
     try {
-      const dbUser = await prisma.user.upsert({
+      const dbUser = await this.prisma.user.upsert({
         where: { email: profile.email },
         update: {
           first_name,
