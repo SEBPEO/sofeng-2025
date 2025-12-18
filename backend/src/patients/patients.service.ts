@@ -6,42 +6,159 @@ export class PatientsService {
   constructor(private prisma: PrismaService) {}
 
   /**
-   * Get all patients assigned to a specific doctor.
-   *
-   * @param doctorUserId - The user_id of the doctor (from JWT)
-   * @returns Array of patients with their user info
-   *
-   * Security: Filters appointments by doctor_id to ensure doctors
-   * only see their own patients.
+   * Get ALL patients in the system (for browsing/discovery)
+   * Returns patient info with user details
    */
-  async getPatientsByDoctorUserId(doctorUserId: string) {
-    // First, get the doctor's profile to find their doctor_id
+  async getAllPatients() {
+    const patients = await this.prisma.patientProfile.findMany({
+      include: {
+        user: true,
+      },
+    });
+
+    return patients.map((patient) => ({
+      patient_id: patient.patient_id,
+      user_id: patient.user_id,
+      date_of_birth: patient.date_of_birth,
+      emergency_contact: patient.emergency_contact,
+      conditions: patient.conditions,
+      medications: patient.medications,
+      allergy: patient.allergy,
+      first_name: patient.user.first_name,
+      last_name: patient.user.last_name,
+      email: patient.user.email,
+      gender: patient.user.gender,
+    }));
+  }
+
+  /**
+   * Get patients assigned to a specific doctor (My Patients)
+   * Filters by doctor_id from JWT
+   */
+  async getMyPatients(doctorUserId: string) {
+    // Get doctor profile
     const doctorProfile = await this.prisma.doctorProfile.findUnique({
       where: { user_id: doctorUserId },
     });
 
     if (!doctorProfile) {
-      // User is not a doctor or hasn't completed profile
       return [];
     }
 
-    // Get all appointments for this doctor
-    const appointments = await this.prisma.appointment.findMany({
-      where: {
-        doctor_id: doctorProfile.doctor_id,
-      },
+    // Get assigned patients
+    const doctorPatients = await this.prisma.doctorPatient.findMany({
+      where: { doctor_id: doctorProfile.doctor_id },
       include: {
         patient: {
           include: {
-            user: true, // Include user info (name, email, etc.)
+            user: true,
           },
         },
       },
     });
 
-    // Extract unique patients (a patient may have multiple appointments)
-    const uniquePatients = new Map();
+    return doctorPatients.map((dp) => ({
+      patient_id: dp.patient.patient_id,
+      user_id: dp.patient.user_id,
+      date_of_birth: dp.patient.date_of_birth,
+      emergency_contact: dp.patient.emergency_contact,
+      conditions: dp.patient.conditions,
+      medications: dp.patient.medications,
+      allergy: dp.patient.allergy,
+      first_name: dp.patient.user.first_name,
+      last_name: dp.patient.user.last_name,
+      email: dp.patient.user.email,
+      gender: dp.patient.user.gender,
+      assigned_at: dp.assigned_at,
+    }));
+  }
 
+  /**
+   * Assign a patient to a doctor (Add to My Patients)
+   */
+  async assignPatientToDoctor(doctorUserId: string, patientId: number) {
+    const doctorProfile = await this.prisma.doctorProfile.findUnique({
+      where: { user_id: doctorUserId },
+    });
+
+    if (!doctorProfile) {
+      throw new Error('Doctor profile not found');
+    }
+
+    // Create assignment
+    const assignment = await this.prisma.doctorPatient.create({
+      data: {
+        doctor_id: doctorProfile.doctor_id,
+        patient_id: patientId,
+      },
+      include: {
+        patient: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+
+    return {
+      patient_id: assignment.patient.patient_id,
+      first_name: assignment.patient.user.first_name,
+      last_name: assignment.patient.user.last_name,
+      email: assignment.patient.user.email,
+      assigned_at: assignment.assigned_at,
+    };
+  }
+
+  /**
+   * Unassign a patient from a doctor (Remove from My Patients)
+   */
+  async unassignPatientFromDoctor(doctorUserId: string, patientId: number) {
+    const doctorProfile = await this.prisma.doctorProfile.findUnique({
+      where: { user_id: doctorUserId },
+    });
+
+    if (!doctorProfile) {
+      throw new Error('Doctor profile not found');
+    }
+
+    // Delete assignment
+    await this.prisma.doctorPatient.delete({
+      where: {
+        doctor_id_patient_id: {
+          doctor_id: doctorProfile.doctor_id,
+          patient_id: patientId,
+        },
+      },
+    });
+
+    return { success: true, patientId };
+  }
+
+  /**
+   * Get patients assigned to a specific doctor via appointments (legacy)
+   * Kept for backward compatibility
+   */
+  async getPatientsByDoctorUserId(doctorUserId: string) {
+    const doctorProfile = await this.prisma.doctorProfile.findUnique({
+      where: { user_id: doctorUserId },
+    });
+
+    if (!doctorProfile) {
+      return [];
+    }
+
+    const appointments = await this.prisma.appointment.findMany({
+      where: { doctor_id: doctorProfile.doctor_id },
+      include: {
+        patient: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+
+    const uniquePatients = new Map();
     appointments.forEach((appointment) => {
       const patient = appointment.patient;
       const user = patient.user;
@@ -55,7 +172,6 @@ export class PatientsService {
           conditions: patient.conditions,
           medications: patient.medications,
           allergy: patient.allergy,
-          // User info
           first_name: user.first_name,
           last_name: user.last_name,
           email: user.email,

@@ -1,0 +1,134 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.description {
+  color: #666;
+  font-size: 1rem;
+  margin-bottom: 2rem;
+}
+
+.error {
+  color: #d32f2f;
+  padding: 1rem;
+  background-color: #ffebee;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.success {
+  color: #2e7d32;
+  padding: 1rem;
+  background-color: #e8f5e9;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  border-left: 4px solid #2e7d32;
+}
+
+.patientsList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.patientCard {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.patientCard:hover {
+  border-color: #1976d2;
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.15);
+  transform: translateY(-2px);
+}
+
+.patientHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.patientName {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  color: #1976d2;
+}
+
+.patientEmail {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0.25rem 0 0 0;
+}
+
+.patientGender {
+  background-color: #f5f5f5;
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.patientInfo {
+  flex: 1;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.patientInfo p {
+  margin: 0.5rem 0;
+  color: #555;
+}
+
+.patientInfo strong {
+  color: #333;
+  font-weight: 600;
+}
+
+.removeButton {
+  background-color: #d32f2f;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.removeButton:hover:not(:disabled) {
+  background-color: #b71c1c;
+  box-shadow: 0 4px 8px rgba(211, 47, 47, 0.3);
+}
+
+.removeButton:disabled {
+  background-color: #ef9a9a;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.removeButton:active:not(:disabled) {
+  transform: scale(0.98);
+}

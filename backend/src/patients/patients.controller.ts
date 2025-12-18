@@ -1,4 +1,13 @@
-import { Controller, Get, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Param,
+  UseGuards,
+  Request,
+  BadRequestException,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PatientsService } from './patients.service';
 
@@ -8,15 +17,67 @@ export class PatientsController {
 
   /**
    * GET /patients
-   * Returns patients assigned to the authenticated doctor.
-   *
-   * Security: Only authenticated users with 'doctor' role can access.
-   * Doctors only see their own patients filtered by doctor_id.
+   * Returns ALL patients in the system (for browsing/discovery)
+   * Public endpoint (no auth required, but clients can filter on frontend)
    */
-  @UseGuards(JwtAuthGuard)
   @Get()
-  async getDoctorPatients(@Request() req) {
-    const userId = req.user.userId; // JWT payload from JwtStrategy.validate()
-    return this.patientsService.getPatientsByDoctorUserId(userId);
+  async getAllPatients() {
+    return await this.patientsService.getAllPatients();
+  }
+
+  /**
+   * GET /patients/my
+   * Returns only patients assigned to the authenticated doctor (My Patients)
+   * Protected: requires JWT
+   */
+  @Get('my')
+  @UseGuards(JwtAuthGuard)
+  async getMyPatients(@Request() req) {
+    const doctorUserId = req.user.userId;
+    return await this.patientsService.getMyPatients(doctorUserId);
+  }
+
+  /**
+   * POST /patients/:patientId/assign
+   * Assigns a patient to the authenticated doctor (Add to My Patients)
+   * Protected: requires JWT
+   */
+  @Post(':patientId/assign')
+  @UseGuards(JwtAuthGuard)
+  async assignPatient(@Param('patientId') patientId: string, @Request() req) {
+    const doctorUserId = req.user.userId;
+    const patientIdNum = parseInt(patientId, 10);
+
+    if (isNaN(patientIdNum)) {
+      throw new BadRequestException('Invalid patient ID');
+    }
+
+    try {
+      return await this.patientsService.assignPatientToDoctor(doctorUserId, patientIdNum);
+    } catch (error) {
+      throw new BadRequestException(error.message || 'Failed to assign patient');
+    }
+  }
+
+  /**
+   * DELETE /patients/:patientId/unassign
+   * Removes a patient from the authenticated doctor (Remove from My Patients)
+   * Protected: requires JWT
+   */
+  @Delete(':patientId/unassign')
+  @UseGuards(JwtAuthGuard)
+  async unassignPatient(@Param('patientId') patientId: string, @Request() req) {
+    const doctorUserId = req.user.userId;
+    const patientIdNum = parseInt(patientId, 10);
+
+    if (isNaN(patientIdNum)) {
+      throw new BadRequestException('Invalid patient ID');
+    }
+
+    try {
+      return await this.patientsService.unassignPatientFromDoctor(doctorUserId, patientIdNum);
+    } catch (error) {
+      throw new BadRequestException(error.message || 'Failed to unassign patient');
+    }
   }
 }

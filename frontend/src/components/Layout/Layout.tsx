@@ -14,7 +14,8 @@ export const Layout = () => {
   };
 
   const navItems = [
-    { path: '/patients', icon: '👥', label: 'Patients' },
+    { path: '/patients', icon: '❤️', label: 'My Patients' },
+    { path: '/available-patients', icon: '👥', label: 'Available Patients' },
     { path: '/profile', icon: '⚙️', label: 'Profile' },
     { path: '/legal', icon: '📄', label: 'Legal' },
   ];

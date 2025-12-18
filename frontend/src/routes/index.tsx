@@ -24,7 +24,8 @@ const router = createBrowserRouter([
       </Protected>
     ),
     children: [
-      { path: '/patients', element: <patients.pages.Patients /> },
+      { path: '/patients', element: <patients.pages.MyPatients /> },
+      { path: '/available-patients', element: <patients.pages.AllPatients /> },
       { path: '/profile', element: <profile.pages.Profile.Profile /> },
       { path: '/legal', element: <legal.pages.Legal /> },
     ],

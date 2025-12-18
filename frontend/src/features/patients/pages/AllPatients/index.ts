@@ -1,2 +1,1 @@
 export { AllPatients } from './AllPatients';
-export { MyPatients } from './MyPatients';
