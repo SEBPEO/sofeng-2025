@@ -55,3 +55,15 @@ export async function unassignPatient(
   const { data } = await apiClient.delete(`/patients/${patientId}/unassign`);
   return data;
 }
+
+/**
+ * Fetch doctors assigned to the current patient (My Doctor)
+ * Backend endpoint: GET /patients/my-doctors
+ *
+ * Security: Backend filters by authenticated patient's ID from JWT.
+ * Patients only see doctors who assigned them.
+ */
+export async function getMyDoctor() {
+  const { data } = await apiClient.get('/patients/my-doctors');
+  return data;
+}

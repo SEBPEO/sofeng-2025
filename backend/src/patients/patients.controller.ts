@@ -92,4 +92,16 @@ export class PatientsController {
       throw new BadRequestException(error.message || 'Failed to unassign patient');
     }
   }
+
+  /**
+   * GET /patients/my-doctors
+   * Returns only doctors assigned to the authenticated patient (My Doctors)
+   * Protected: requires JWT
+   */
+  @Get('my-doctors')
+  @UseGuards(JwtAuthGuard)
+  async getMyDoctors(@Request() req) {
+    const patientUserId = req.user.userId;
+    return await this.patientsService.getMyDoctors(patientUserId);
+  }
 }

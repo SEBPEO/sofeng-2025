@@ -32,11 +32,12 @@ export class PatientsService {
   }
 
   /**
-   * Get available patients (NOT already assigned to this doctor)
-   * Filters by current doctor's ID from JWT
+   * Get available patients (NOT assigned to ANY doctor)
+   * A patient becomes exclusive to one doctor once assigned.
+   * Only unassigned patients appear in available list.
    */
   async getAvailablePatients(doctorUserId: string) {
-    // Get doctor profile
+    // Get doctor profile (just to validate the user is a doctor)
     const doctorProfile = await this.prisma.doctorProfile.findUnique({
       where: { user_id: doctorUserId },
     });
@@ -51,15 +52,14 @@ export class PatientsService {
       include: { user: true },
     });
 
-    // Get already assigned patients
-    const assignedIds = await this.prisma.doctorPatient.findMany({
-      where: { doctor_id: doctorProfile.doctor_id },
+    // Get ALL assigned patients (regardless of which doctor)
+    const allAssignedPatients = await this.prisma.doctorPatient.findMany({
       select: { patient_id: true },
     });
 
-    const assignedPatientIds = new Set(assignedIds.map((a) => a.patient_id));
+    const assignedPatientIds = new Set(allAssignedPatients.map((a) => a.patient_id));
 
-    // Filter out assigned patients
+    // Filter out ALL assigned patients (exclusive to one doctor)
     return allPatients
       .filter((p) => !assignedPatientIds.has(p.patient_id))
       .map((patient) => ({
@@ -227,5 +227,45 @@ export class PatientsService {
     });
 
     return Array.from(uniquePatients.values());
+  }
+
+  /**
+   * Get doctors assigned to a specific patient (My Doctors)
+   * Filters by patient_id from JWT
+   */
+  async getMyDoctors(patientUserId: string) {
+    // Get patient profile
+    const patientProfile = await this.prisma.patientProfile.findUnique({
+      where: { user_id: patientUserId },
+    });
+
+    if (!patientProfile) {
+      return [];
+    }
+
+    // Get assigned doctors
+    const patientDoctors = await this.prisma.doctorPatient.findMany({
+      where: { patient_id: patientProfile.patient_id },
+      include: {
+        doctor: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+
+    return patientDoctors.map((pd) => ({
+      doctor_id: pd.doctor.doctor_id,
+      user_id: pd.doctor.user_id,
+      specialization: pd.doctor.specialization,
+      experience_years: pd.doctor.experience_years,
+      clinic_address: pd.doctor.clinic_address,
+      contact_info: pd.doctor.contact_info,
+      working_hours: pd.doctor.working_hours,
+      first_name: pd.doctor.user.first_name,
+      last_name: pd.doctor.user.last_name,
+      email: pd.doctor.user.email,
+    }));
   }
 }
