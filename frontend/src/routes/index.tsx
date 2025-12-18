@@ -3,6 +3,8 @@ import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 import { login, patients, legal, profile } from '@/features';
 import { Layout } from '@/components';
 import { getAuthToken } from '@/store/auth/authApi';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { getUserByJwtThunk } from '@/store/user/userSlice';
 
 const Protected = ({ children }: { children: React.ReactNode }) => {
   const token = getAuthToken();
@@ -12,7 +14,37 @@ const Protected = ({ children }: { children: React.ReactNode }) => {
 // redirect to patients if already authenticated
 const Root = () => {
   const token = getAuthToken();
-  return !token ? <login.pages.Login /> : <Navigate to="/patients" replace />;
+  const dispatch = useAppDispatch();
+  const currentUser = useAppSelector((state) => state.users.current);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    if (token && !currentUser) {
+      dispatch(getUserByJwtThunk() as any).then(() => {
+        setIsLoading(false);
+      });
+    } else {
+      setIsLoading(false);
+    }
+  }, [token, currentUser, dispatch]);
+
+  if (!token) {
+    return <login.pages.Login />;
+  }
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  // Redirect based on role
+  if (currentUser?.role === 'doctor') {
+    return <Navigate to="/patients" replace />;
+  } else if (currentUser?.role === 'patient') {
+    return <Navigate to="/my-doctor" replace />;
+  } else {
+    // If role is not set, redirect to profile to complete setup
+    return <Navigate to="/profile" replace />;
+  }
 };
 
 const router = createBrowserRouter([
@@ -24,7 +56,9 @@ const router = createBrowserRouter([
       </Protected>
     ),
     children: [
-      { path: '/patients', element: <patients.pages.Patients /> },
+      { path: '/patients', element: <patients.pages.MyPatients /> },
+      { path: '/available-patients', element: <patients.pages.AllPatients /> },
+      { path: '/my-doctor', element: <patients.pages.MyDoctor /> },
       { path: '/profile', element: <profile.pages.Profile.Profile /> },
       { path: '/legal', element: <legal.pages.Legal /> },
     ],
