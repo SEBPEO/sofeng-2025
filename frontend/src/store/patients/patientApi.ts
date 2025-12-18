@@ -2,11 +2,23 @@ import apiClient from '../apiClient';
 import { patientsResponseSchema, type Patient } from './patientSchema';
 
 /**
-* Fetch ALL patients in the system (for browsing/discovery)
+ * Fetch ALL patients in the system (for browsing/discovery)
  * Backend endpoint: GET /patients
  */
 export async function getAllPatients(): Promise<Patient[]> {
   const { data } = await apiClient.get('/patients');
+  return patientsResponseSchema.parse(data);
+}
+
+/**
+ * Fetch AVAILABLE patients (not yet assigned to current doctor)
+ * Backend endpoint: GET /patients/available
+ *
+ * Security: Backend filters by authenticated doctor's ID from JWT.
+ * Returns only patients NOT already assigned to this doctor.
+ */
+export async function getAvailablePatients(): Promise<Patient[]> {
+  const { data } = await apiClient.get('/patients/available');
   return patientsResponseSchema.parse(data);
 }
 

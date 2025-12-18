@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import styles from './AllPatients.module.css';
-import { getAllPatients, assignPatient } from '@/store/patients/patientApi';
+import { getAvailablePatients, assignPatient } from '@/store/patients/patientApi';
 import type { Patient } from '@/store/patients/patientSchema';
 
 export const AllPatients = () => {
@@ -15,7 +15,7 @@ export const AllPatients = () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await getAllPatients();
+        const data = await getAvailablePatients();
         setPatients(data);
       } catch (err) {
         console.error('Failed to fetch patients:', err);
@@ -31,6 +31,7 @@ export const AllPatients = () => {
   const handleAssign = async (patientId: number) => {
     try {
       setAssigningId(patientId);
+      setError(null);
       await assignPatient(patientId);
 
       // Remove from list since it's now assigned
@@ -40,7 +41,9 @@ export const AllPatients = () => {
       setTimeout(() => setSuccessMsg(null), 3000);
     } catch (err) {
       console.error('Failed to assign patient:', err);
-      setError('Failed to add patient. Try again.');
+      const errorMsg =
+        err instanceof Error ? err.message : 'Failed to add patient. Please try again.';
+      setError(errorMsg);
     } finally {
       setAssigningId(null);
     }

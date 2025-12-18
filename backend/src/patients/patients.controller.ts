@@ -26,6 +26,18 @@ export class PatientsController {
   }
 
   /**
+   * GET /patients/available
+   * Returns only patients NOT already assigned to the authenticated doctor
+   * Protected: requires JWT
+   */
+  @Get('available')
+  @UseGuards(JwtAuthGuard)
+  async getAvailablePatients(@Request() req) {
+    const doctorUserId = req.user.userId;
+    return await this.patientsService.getAvailablePatients(doctorUserId);
+  }
+
+  /**
    * GET /patients/my
    * Returns only patients assigned to the authenticated doctor (My Patients)
    * Protected: requires JWT

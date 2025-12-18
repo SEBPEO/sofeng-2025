@@ -32,6 +32,52 @@ export class PatientsService {
   }
 
   /**
+   * Get available patients (NOT already assigned to this doctor)
+   * Filters by current doctor's ID from JWT
+   */
+  async getAvailablePatients(doctorUserId: string) {
+    // Get doctor profile
+    const doctorProfile = await this.prisma.doctorProfile.findUnique({
+      where: { user_id: doctorUserId },
+    });
+
+    if (!doctorProfile) {
+      // User hasn't set up doctor profile yet, return all patients
+      return this.getAllPatients();
+    }
+
+    // Get all patients
+    const allPatients = await this.prisma.patientProfile.findMany({
+      include: { user: true },
+    });
+
+    // Get already assigned patients
+    const assignedIds = await this.prisma.doctorPatient.findMany({
+      where: { doctor_id: doctorProfile.doctor_id },
+      select: { patient_id: true },
+    });
+
+    const assignedPatientIds = new Set(assignedIds.map((a) => a.patient_id));
+
+    // Filter out assigned patients
+    return allPatients
+      .filter((p) => !assignedPatientIds.has(p.patient_id))
+      .map((patient) => ({
+        patient_id: patient.patient_id,
+        user_id: patient.user_id,
+        date_of_birth: patient.date_of_birth,
+        emergency_contact: patient.emergency_contact,
+        conditions: patient.conditions,
+        medications: patient.medications,
+        allergy: patient.allergy,
+        first_name: patient.user.first_name,
+        last_name: patient.user.last_name,
+        email: patient.user.email,
+        gender: patient.user.gender,
+      }));
+  }
+
+  /**
    * Get patients assigned to a specific doctor (My Patients)
    * Filters by doctor_id from JWT
    */
