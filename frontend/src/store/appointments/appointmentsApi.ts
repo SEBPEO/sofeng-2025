@@ -96,3 +96,34 @@ export async function updateAppointment(
 export async function cancelAppointment(id: number): Promise<void> {
   await apiClient.delete(`/appointments/${id}`);
 }
+
+export interface Availability {
+  availability_id: number;
+  doctor_id: number;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  duration_minutes: number;
+  is_available: boolean;
+}
+
+export interface TimeSlot {
+  start_time: string;
+  end_time: string;
+  duration_minutes: number;
+}
+
+export async function getDoctorAvailability(doctorId: number): Promise<Availability[]> {
+  const response = await apiClient.get<Availability[]>(`/availability/doctor/${doctorId}`);
+  return response.data;
+}
+
+export async function getAvailableSlots(
+  doctorId: number,
+  date: string,
+): Promise<TimeSlot[]> {
+  const response = await apiClient.get<TimeSlot[]>(
+    `/appointments/doctors/${doctorId}/available-slots?date=${date}`,
+  );
+  return response.data;
+}

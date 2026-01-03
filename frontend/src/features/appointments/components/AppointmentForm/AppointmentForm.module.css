@@ -51,6 +51,12 @@
   box-shadow: 0 0 0 3px rgba(23, 181, 163, 0.1);
 }
 
+.helperText {
+  font-size: 0.8125rem;
+  color: var(--color-text-light);
+  margin-top: var(--space-xs);
+}
+
 .textarea {
   resize: vertical;
   min-height: 120px;
@@ -80,3 +86,27 @@
   border-top: 1px solid rgba(23, 181, 163, 0.1);
 }
 
+.selectedSlotInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: linear-gradient(135deg, rgba(23, 181, 163, 0.08) 0%, rgba(23, 181, 163, 0.03) 100%);
+  border: 1.5px solid rgba(23, 181, 163, 0.2);
+  border-radius: var(--radius-md);
+  margin-top: var(--space-sm);
+}
+
+.selectedSlotLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.selectedSlotTime {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}

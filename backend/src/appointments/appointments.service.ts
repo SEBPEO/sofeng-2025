@@ -10,6 +10,7 @@ import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { AppointmentResponseDto } from './dto/appointment-response.dto';
 import { GoogleCalendarService } from './google-calendar.service';
+import { AvailabilityService } from '../availability/availability.service';
 
 const prisma = new PrismaClient();
 
@@ -17,7 +18,10 @@ const prisma = new PrismaClient();
 export class AppointmentsService {
   private readonly logger = new Logger(AppointmentsService.name);
 
-  constructor(private readonly googleCalendarService: GoogleCalendarService) {}
+  constructor(
+    private readonly googleCalendarService: GoogleCalendarService,
+    private readonly availabilityService: AvailabilityService,
+  ) {}
 
   async create(
     patientId: number,
@@ -31,8 +35,31 @@ export class AppointmentsService {
       throw new BadRequestException('Cannot schedule appointments in the past');
     }
 
-    // Validate: Check for overlapping appointments
+    // Get doctor's availability for this day
+    const dateStr = appointmentDateTime.toISOString().split('T')[0];
+    const availableSlots = await this.availabilityService.getAvailableSlots(
+      createAppointmentDto.doctor_id,
+      dateStr,
+    );
+
+    // Check if the requested time matches an available slot
+    const requestedTime = appointmentDateTime.toISOString();
     const duration = createAppointmentDto.duration_minutes || 30;
+    const requestedEndTime = new Date(
+      appointmentDateTime.getTime() + duration * 60000,
+    ).toISOString();
+
+    const isValidSlot = availableSlots.some(
+      (slot) => slot.start_time === requestedTime && slot.duration_minutes === duration,
+    );
+
+    if (!isValidSlot) {
+      throw new BadRequestException(
+        'The selected time slot is not available. Please choose from available time slots.',
+      );
+    }
+
+    // Validate: Check for overlapping appointments
     const endTime = new Date(appointmentDateTime.getTime() + duration * 60000);
 
     // Find all non-cancelled appointments for this doctor
@@ -219,8 +246,27 @@ export class AppointmentsService {
         throw new BadRequestException('Cannot reschedule to a past date');
       }
 
-      // Validate: Check for overlapping appointments (excluding current appointment)
+      // Get doctor's availability for this day
+      const dateStr = appointmentDateTime.toISOString().split('T')[0];
+      const availableSlots = await this.availabilityService.getAvailableSlots(
+        appointment.doctor_id,
+        dateStr,
+      );
+
+      // Check if the requested time matches an available slot
+      const requestedTime = appointmentDateTime.toISOString();
       const duration = updateAppointmentDto.duration_minutes || appointment.duration_minutes || 30;
+      const isValidSlot = availableSlots.some(
+        (slot) => slot.start_time === requestedTime && slot.duration_minutes === duration,
+      );
+
+      if (!isValidSlot) {
+        throw new BadRequestException(
+          'The selected time slot is not available. Please choose from available time slots.',
+        );
+      }
+
+      // Validate: Check for overlapping appointments (excluding current appointment)
       const endTime = new Date(appointmentDateTime.getTime() + duration * 60000);
 
       // Find all non-cancelled appointments for this doctor (excluding current)
@@ -359,6 +405,10 @@ export class AppointmentsService {
       working_hours: doctor.working_hours,
       user: doctor.user,
     }));
+  }
+
+  async getAvailableSlots(doctorId: number, date: string) {
+    return this.availabilityService.getAvailableSlots(doctorId, date);
   }
 
   private mapToResponseDto(appointment: any): AppointmentResponseDto {

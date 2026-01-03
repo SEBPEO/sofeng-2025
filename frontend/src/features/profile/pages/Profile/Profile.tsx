@@ -8,6 +8,7 @@ import {
   RoleSelectionSection,
   DoctorInfoSection,
   PatientInfoSection,
+  AvailabilitySection,
 } from '../../components';
 import styles from './Profile.module.css';
 
@@ -36,6 +37,7 @@ export const Profile = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [initialRole, setInitialRole] = useState<'doctor' | 'patient' | null>(null);
+  const [doctorId, setDoctorId] = useState<number | null>(null);
 
   const {
     register,
@@ -77,6 +79,7 @@ export const Profile = () => {
         setValue('clinic_address', user.doctor_profile.clinic_address);
         setValue('contact_info', user.doctor_profile.contact_info || undefined);
         setValue('working_hours', user.doctor_profile.working_hours || undefined);
+        setDoctorId(user.doctor_profile.doctor_id);
       }
 
       // Pre-fill patient profile if exists
@@ -194,6 +197,9 @@ export const Profile = () => {
             </Button>
           </div>
         </form>
+
+        {/* Availability Section for Doctors */}
+        {doctorId && <AvailabilitySection doctorId={doctorId} />}
       </div>
     </div>
   );
