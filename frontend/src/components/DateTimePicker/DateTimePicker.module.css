@@ -1,0 +1,360 @@
+/* DateTimePicker - Compact Modern Styles */
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  width: 100%;
+  position: relative;
+}
+
+.label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Trigger Button */
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid rgba(23, 181, 163, 0.15);
+  border-radius: var(--radius-md);
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-family-base);
+  font-size: 0.9375rem;
+  text-align: left;
+}
+
+.trigger:hover:not(.disabled) {
+  border-color: rgba(23, 181, 163, 0.4);
+}
+
+.trigger:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(23, 181, 163, 0.1);
+}
+
+.trigger.hasError {
+  border-color: #ef4444;
+}
+
+.trigger.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #f5f5f5;
+}
+
+.calendarIcon {
+  font-size: 1rem;
+}
+
+.value {
+  flex: 1;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.placeholder {
+  flex: 1;
+  color: var(--color-text-light);
+  opacity: 0.6;
+}
+
+.chevron {
+  font-size: 0.875rem;
+  color: var(--color-text-light);
+  transition: transform 0.2s ease;
+}
+
+.chevron.open {
+  transform: rotate(180deg);
+}
+
+/* Dropdown - Compact */
+.dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+  z-index: 1000;
+  overflow: hidden;
+  animation: dropdownSlide 0.15s ease;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: row;
+}
+
+@keyframes dropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Calendar Section - Compact */
+.calendar {
+  padding: 12px;
+  border-right: 1px solid rgba(0, 0, 0, 0.06);
+  min-width: 240px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.navButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.125rem;
+  color: var(--color-text-light);
+  transition: all 0.15s ease;
+}
+
+.navButton:hover {
+  background: rgba(23, 181, 163, 0.1);
+  color: var(--color-primary);
+}
+
+.monthYear {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* Day Names */
+.dayNames {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 4px;
+}
+
+.dayName {
+  text-align: center;
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 4px 0;
+}
+
+/* Days Grid - Compact */
+.daysGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-text);
+  transition: all 0.1s ease;
+}
+
+.day:hover:not(.disabled):not(.selected) {
+  background: rgba(23, 181, 163, 0.1);
+  color: var(--color-primary);
+}
+
+.day.today:not(.selected) {
+  background: rgba(23, 181, 163, 0.08);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.day.selected {
+  background: var(--color-primary);
+  color: white;
+  font-weight: 600;
+}
+
+.day.disabled {
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+.emptyDay {
+  width: 30px;
+  height: 30px;
+}
+
+/* Time Picker Section - Compact Side Panel */
+.timePicker {
+  padding: 12px;
+  background: #f8f9fa;
+  display: flex;
+  flex-direction: column;
+  min-width: 120px;
+  gap: 10px;
+}
+
+.timeLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.clockIcon {
+  font-size: 0.875rem;
+}
+
+.timeSelectors {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.timeColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.timeColumnLabel {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+  text-transform: uppercase;
+}
+
+.timeOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  max-height: 72px;
+  overflow-y: auto;
+}
+
+.timeOptions::-webkit-scrollbar {
+  width: 3px;
+}
+
+.timeOptions::-webkit-scrollbar-thumb {
+  background: rgba(23, 181, 163, 0.2);
+  border-radius: 3px;
+}
+
+.timeOption {
+  padding: 4px 6px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--color-text);
+  transition: all 0.1s ease;
+  font-family: var(--font-family-base);
+}
+
+.timeOption:hover:not(.selected) {
+  border-color: var(--color-primary);
+  background: rgba(23, 181, 163, 0.05);
+}
+
+.timeOption.selected {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+  font-weight: 600;
+}
+
+.confirmButton {
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  color: white;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--font-family-base);
+  margin-top: auto;
+}
+
+.confirmButton:hover:not(:disabled) {
+  background: var(--color-primary-700);
+}
+
+.confirmButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Error Text */
+.errorText {
+  font-size: 0.8125rem;
+  color: #ef4444;
+  margin-top: 2px;
+}
+
+/* Responsive - Stack on small screens */
+@media (max-width: 420px) {
+  .dropdown {
+    flex-direction: column;
+    max-width: 260px;
+  }
+
+  .calendar {
+    border-right: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .timePicker {
+    flex-direction: column;
+  }
+
+  .timeSelectors {
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .timeColumn {
+    flex: 1;
+  }
+
+  .timeOptions {
+    max-height: 50px;
+  }
+}

@@ -11,6 +11,9 @@ export type { SelectProps, SelectOption } from './Select';
 export { RadioGroup } from './RadioGroup';
 export type { RadioGroupProps, RadioOption } from './RadioGroup';
 
+export { DateTimePicker } from './DateTimePicker';
+export type { DateTimePickerProps } from './DateTimePicker';
+
 // Background Components
 export { MedicalBackground } from './MedicalBackground';
 

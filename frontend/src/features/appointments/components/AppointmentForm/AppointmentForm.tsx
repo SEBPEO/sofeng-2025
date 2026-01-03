@@ -1,7 +1,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { DoctorSelector } from '../DoctorSelector';
-import { Button } from '@/components';
+import { Button, DateTimePicker } from '@/components';
 import styles from './AppointmentForm.module.css';
 
 export interface AppointmentFormData {
@@ -69,12 +69,6 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
     });
   };
 
-  // Get current date/time in local timezone for min attribute
-  const now = new Date();
-  const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-    .toISOString()
-    .slice(0, 16);
-
   return (
     <form onSubmit={handleSubmit(onFormSubmit)} className={styles.form}>
       {!isReschedule && (
@@ -90,12 +84,17 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
       )}
 
       <div className={styles.section}>
-        <label htmlFor="appointment_datetime" className={styles.label}>
-          Date & Time *
-        </label>
+        <DateTimePicker
+          label="Date & Time *"
+          value={watch('appointment_datetime')}
+          onChange={(value) => {
+            setValue('appointment_datetime', value, { shouldValidate: true });
+          }}
+          minDate={new Date()}
+          error={errors.appointment_datetime?.message}
+        />
         <input
-          id="appointment_datetime"
-          type="datetime-local"
+          type="hidden"
           {...register('appointment_datetime', {
             required: 'Appointment date and time is required',
             validate: (value) => {
@@ -107,12 +106,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
               return true;
             },
           })}
-          min={localDateTime}
-          className={styles.input}
         />
-        {errors.appointment_datetime && (
-          <span className={styles.errorText}>{errors.appointment_datetime.message}</span>
-        )}
       </div>
 
       <div className={styles.section}>

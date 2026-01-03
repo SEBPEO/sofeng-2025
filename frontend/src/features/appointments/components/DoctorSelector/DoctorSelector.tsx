@@ -81,14 +81,23 @@ export const DoctorSelector: React.FC<DoctorSelectorProps> = ({
                 key={doctor.doctor_id}
                 className={`${styles.doctorCard} ${isSelected ? styles.selected : ''}`}
                 onClick={() => onSelect(doctor.doctor_id)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e.key === 'Enter' && onSelect(doctor.doctor_id)}
               >
                 <div className={styles.doctorInfo}>
                   <h3 className={styles.doctorName}>Dr. {doctorName}</h3>
-                  <p className={styles.specialization}>{doctor.specialization}</p>
-                  <p className={styles.clinicAddress}>{doctor.clinic_address}</p>
+                  {doctor.specialization && (
+                    <span className={styles.specialization}>{doctor.specialization}</span>
+                  )}
+                  {doctor.clinic_address && (
+                    <p className={styles.clinicAddress}>
+                      <span>{doctor.clinic_address}</span>
+                    </p>
+                  )}
                   {doctor.experience_years && (
                     <p className={styles.experience}>
-                      {doctor.experience_years} years of experience
+                      <strong>{doctor.experience_years}</strong> years of experience
                     </p>
                   )}
                 </div>

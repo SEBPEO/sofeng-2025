@@ -5,52 +5,111 @@
 .loading,
 .empty {
   text-align: center;
-  padding: 3rem;
-  color: #666;
+  padding: var(--space-xl);
+  color: var(--color-text-light);
+  font-size: 1rem;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.loading::before {
+  content: '⏳';
+  font-size: 2rem;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .emptySubtext {
-  margin-top: 0.5rem;
+  margin-top: var(--space-sm);
   font-size: 0.875rem;
-  color: #999;
+  color: var(--color-text-light);
+  opacity: 0.7;
 }
 
 .section {
-  margin-bottom: 2.5rem;
+  margin-bottom: var(--space-xl);
 }
 
 .sectionTitle {
-  font-size: 1.25rem;
+  font-size: 1.375rem;
   font-weight: 600;
-  margin-bottom: 1rem;
-  color: #333;
+  margin-bottom: var(--space-lg);
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.sectionTitle::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    rgba(23, 181, 163, 0.3),
+    transparent
+  );
 }
 
 .appointmentsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: var(--space-lg);
 }
 
 .appointmentCard {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 1.5rem;
-  background: white;
-  transition: box-shadow 0.2s;
+  border: 1.5px solid rgba(23, 181, 163, 0.12);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  background: var(--color-surface);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.appointmentCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .appointmentCard:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--elevation-2);
+  border-color: rgba(23, 181, 163, 0.25);
+  transform: translateY(-2px);
+}
+
+.appointmentCard:hover::before {
+  opacity: 1;
 }
 
 .appointmentHeader {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid rgba(23, 181, 163, 0.08);
 }
 
 .appointmentInfo {
@@ -58,73 +117,88 @@
 }
 
 .doctorName {
-  margin: 0 0 0.25rem 0;
-  font-size: 1.125rem;
+  margin: 0 0 var(--space-xs) 0;
+  font-size: 1.25rem;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text);
+  letter-spacing: -0.01em;
 }
 
 .specialization {
   margin: 0;
   font-size: 0.875rem;
-  color: #4a90e2;
+  color: var(--color-primary);
   font-weight: 500;
+  display: inline-block;
+  padding: var(--space-xs) var(--space-sm);
+  background: rgba(23, 181, 163, 0.08);
+  border-radius: var(--radius-sm);
 }
 
 .statusBadge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-lg);
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
 }
 
 .statusScheduled {
-  background: #e3f2fd;
-  color: #1976d2;
+  background: rgba(23, 181, 163, 0.12);
+  color: var(--color-primary-700);
+  border: 1px solid rgba(23, 181, 163, 0.2);
 }
 
 .statusCompleted {
-  background: #e8f5e9;
-  color: #388e3c;
+  background: rgba(56, 142, 60, 0.12);
+  color: #2e7d32;
+  border: 1px solid rgba(56, 142, 60, 0.2);
 }
 
 .statusCancelled {
-  background: #ffebee;
-  color: #d32f2f;
+  background: rgba(211, 47, 47, 0.12);
+  color: #c62828;
+  border: 1px solid rgba(211, 47, 47, 0.2);
 }
 
 .appointmentDetails {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
 }
 
 .detailItem {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--space-md);
+  align-items: flex-start;
 }
 
 .detailLabel {
   font-weight: 600;
-  color: #666;
-  min-width: 80px;
-  font-size: 0.875rem;
+  color: var(--color-text-light);
+  min-width: 90px;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
 }
 
 .detailValue {
-  color: #333;
+  color: var(--color-text);
   font-size: 0.875rem;
   flex: 1;
+  line-height: 1.5;
 }
 
 .appointmentActions {
   display: flex;
-  gap: 0.75rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #f0f0f0;
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid rgba(23, 181, 163, 0.08);
 }
 
 .actionButton {
