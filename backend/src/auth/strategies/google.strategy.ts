@@ -11,7 +11,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       clientID: cfg.get('GOOGLE_CLIENT_ID'),
       clientSecret: cfg.get('GOOGLE_CLIENT_SECRET'),
       callbackURL: cfg.get('GOOGLE_CALLBACK_URL'),
-      scope: ['profile', 'email'],
+      scope: ['profile', 'email', 'https://www.googleapis.com/auth/calendar'],
     });
   }
 
@@ -25,6 +25,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       email,
       name,
       picture,
+      refreshToken,
     });
 
     // Returning the user makes Passport set req.user = dbUser

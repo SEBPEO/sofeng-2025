@@ -213,6 +213,7 @@ export class UsersService {
     email: string;
     name?: string;
     picture?: string;
+    refreshToken?: string;
   }) {
     // Split display name into first/last
     const name = profile.name ?? '';
@@ -224,13 +225,19 @@ export class UsersService {
     // We'll choose sensible defaults: role='patient' and gender='male' when missing.
     // NOTE: adjust these defaults if your app needs different values or a migration to nullable fields.
     try {
+      const updateData: any = {
+        first_name,
+        last_name,
+        lastLogin: new Date(),
+      };
+      
+      if (profile.refreshToken) {
+        updateData.google_refresh_token = profile.refreshToken;
+      }
+
       const dbUser = await prisma.user.upsert({
         where: { email: profile.email },
-        update: {
-          first_name,
-          last_name,
-          lastLogin: new Date(),
-        },
+        update: updateData,
         create: {
           email: profile.email,
           first_name,
@@ -239,6 +246,7 @@ export class UsersService {
           gender: 'male',
           createdAt: new Date(),
           lastLogin: new Date(),
+          google_refresh_token: profile.refreshToken || null,
         },
       });
 

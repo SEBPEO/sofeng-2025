@@ -1,6 +1,6 @@
 import React from 'react';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
-import { login, patients, legal, profile } from '@/features';
+import { login, appointments, legal, profile } from '@/features';
 import { Layout } from '@/components';
 import { getAuthToken } from '@/store/auth/authApi';
 
@@ -9,10 +9,10 @@ const Protected = ({ children }: { children: React.ReactNode }) => {
   return token ? <>{children}</> : <Navigate to="/" replace />;
 };
 
-// redirect to patients if already authenticated
+// redirect to appointments if already authenticated
 const Root = () => {
   const token = getAuthToken();
-  return !token ? <login.pages.Login /> : <Navigate to="/patients" replace />;
+  return !token ? <login.pages.Login /> : <Navigate to="/appointments" replace />;
 };
 
 const router = createBrowserRouter([
@@ -24,7 +24,7 @@ const router = createBrowserRouter([
       </Protected>
     ),
     children: [
-      { path: '/patients', element: <patients.pages.Patients /> },
+      { path: '/appointments', element: <appointments.pages.Appointments.Appointments /> },
       { path: '/profile', element: <profile.pages.Profile.Profile /> },
       { path: '/legal', element: <legal.pages.Legal /> },
     ],

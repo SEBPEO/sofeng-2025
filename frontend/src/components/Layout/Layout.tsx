@@ -14,6 +14,7 @@ export const Layout = () => {
   };
 
   const navItems = [
+    { path: '/appointments', icon: '📅', label: 'Appointments' },
     { path: '/patients', icon: '👥', label: 'Patients' },
     { path: '/profile', icon: '⚙️', label: 'Profile' },
     { path: '/legal', icon: '📄', label: 'Legal' },

@@ -9,14 +9,15 @@ datasource db {
 }
 
 model User{
-    user_id         String      @id @default(uuid())
-    first_name      String      @db.VarChar(200)
-    last_name       String      @db.VarChar(200)
-    gender          Gender
-    email           String      @unique @db.VarChar(200)
-    role            Role 
-    createdAt       DateTime    @default(now())
-    lastLogin       DateTime?
+    user_id              String      @id @default(uuid())
+    first_name           String      @db.VarChar(200)
+    last_name            String      @db.VarChar(200)
+    gender               Gender
+    email                String      @unique @db.VarChar(200)
+    role                 Role 
+    createdAt            DateTime    @default(now())
+    lastLogin            DateTime?
+    google_refresh_token String?
     
     sentMessages        Chat[]      @relation("SentMessages")
     receivedMessages    Chat[]      @relation("ReceivedMessages")
@@ -65,13 +66,14 @@ model PatientProfile{
 }
 
 model Appointment {
-    appointment_id       Int       @id
-    doctor_id            Int
-    patient_id           Int
-    appointment_datetime DateTime
-    duration_minutes     Int?
-    status               AppointmentStatus
-    notes                String? 
+    appointment_id           Int       @id
+    doctor_id                Int
+    patient_id               Int
+    appointment_datetime     DateTime
+    duration_minutes         Int?
+    status                   AppointmentStatus
+    notes                    String? 
+    google_calendar_event_id String?
 
     doctor          DoctorProfile @relation(fields: [doctor_id], references: [doctor_id])
     patient         PatientProfile @relation(fields: [patient_id], references: [patient_id])
