@@ -1,5 +1,10 @@
 import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+// ============================================================================
+// TEMPORARY DEV MODE: Using JwtAuthGuard for dev bypass
+// TODO: RESTORE AUTH VALIDATION - Remove JwtAuthGuard import
+// ============================================================================
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AuthService } from './auth.service';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
@@ -32,10 +37,10 @@ export class AuthController {
 
   // ============================================================================
   // TEMPORARY DEV MODE: Auth validation bypassed
-  // TODO: RESTORE AUTH VALIDATION - Ensure @UseGuards(AuthGuard('jwt')) is properly enforced
+  // TODO: RESTORE AUTH VALIDATION - Replace JwtAuthGuard with AuthGuard('jwt')
   // ============================================================================
   @Get('me')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   async me(@Req() req) {
     const id = req.user?.userId || req.user?.sub;
 
