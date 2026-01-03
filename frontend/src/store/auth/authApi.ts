@@ -5,6 +5,24 @@ export interface LoginResponse {
   [key: string]: unknown;
 }
 
+// ============================================================================
+// TEMPORARY DEV MODE: Auto-login with kemplent user
+// TODO: RESTORE AUTH VALIDATION - Remove this dev mode and restore proper login flow
+// ============================================================================
+export async function devAutoLogin(): Promise<void> {
+  try {
+    const { data } = await apiClient.get('/auth/dev/login');
+    if (data.token) {
+      setAuthToken(data.token);
+      console.log('[DEV MODE] Auto-logged in as kemplent user');
+    } else {
+      console.warn('[DEV MODE] Failed to auto-login:', data.error || 'Unknown error');
+    }
+  } catch (err: any) {
+    console.warn('[DEV MODE] Failed to auto-login:', err?.message || 'Unknown error');
+  }
+}
+
 export async function loginUser(email: string, password: string): Promise<LoginResponse> {
   try {
     const { data } = await apiClient.post('/auth/login', { email, password });

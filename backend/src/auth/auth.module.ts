@@ -9,6 +9,10 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { ConfigService } from '@nestjs/config';
 import { GithubStrategy } from './strategies/github.strategy';
 
+// ============================================================================
+// TEMPORARY DEV MODE: Auth validation bypassed
+// TODO: RESTORE AUTH VALIDATION - Ensure JwtStrategy has proper validation
+// ============================================================================
 @Module({
   imports: [
     UsersModule,
