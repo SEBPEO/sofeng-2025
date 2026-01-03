@@ -49,6 +49,7 @@ model DoctorProfile{
 
     user            User          @relation(fields: [user_id], references: [user_id])
     appointments    Appointment[]
+    patients        DoctorPatient[] @relation("DoctorToPatient")
 
 }
 
@@ -63,6 +64,7 @@ model PatientProfile{
 
     user            User          @relation(fields: [user_id], references: [user_id])
     appointments    Appointment[]
+    doctors         DoctorPatient[] @relation("PatientToDoctor")
 }
 
 model Appointment {
@@ -92,6 +94,18 @@ model Consultation {
 
     appointment Appointment @relation(fields: [appointment_id], references: [appointment_id])
 
+}
+
+model DoctorPatient {
+    id              Int         @id @default(autoincrement())
+    doctor_id       Int
+    patient_id      Int
+    assigned_at     DateTime    @default(now())
+
+    doctor          DoctorProfile @relation("DoctorToPatient", fields: [doctor_id], references: [doctor_id], onDelete: Cascade)
+    patient         PatientProfile @relation("PatientToDoctor", fields: [patient_id], references: [patient_id], onDelete: Cascade)
+
+    @@unique([doctor_id, patient_id])
 }
 
 enum Role {

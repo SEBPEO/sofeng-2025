@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
-import styles from './Patients.module.css';
-import { getMyPatients } from '@/store/patients/patientApi';
+import styles from './MyPatients.module.css';
+import { getMyPatients, unassignPatient } from '@/store/patients/patientApi';
 import type { Patient } from '@/store/patients/patientSchema';
 
-export const Patients = () => {
+export const MyPatients = () => {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [removingId, setRemovingId] = useState<number | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPatients = async () => {
@@ -26,6 +28,28 @@ export const Patients = () => {
     fetchPatients();
   }, []);
 
+  const handleRemove = async (patientId: number) => {
+    if (!window.confirm('Are you sure you want to remove this patient?')) {
+      return;
+    }
+
+    try {
+      setRemovingId(patientId);
+      await unassignPatient(patientId);
+
+      // Remove from list
+      setPatients(patients.filter((p) => p.patient_id !== patientId));
+
+      setSuccessMsg('Patient removed from My Patients');
+      setTimeout(() => setSuccessMsg(null), 3000);
+    } catch (err) {
+      console.error('Failed to remove patient:', err);
+      setError('Failed to remove patient. Try again.');
+    } finally {
+      setRemovingId(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className={styles.container}>
@@ -37,7 +61,7 @@ export const Patients = () => {
   if (error) {
     return (
       <div className={styles.container}>
-        <h1 className={styles.title}>Patients</h1>
+        <h1 className={styles.title}>My Patients</h1>
         <p className={styles.error}>{error}</p>
       </div>
     );
@@ -47,16 +71,23 @@ export const Patients = () => {
     <div className={styles.container}>
       <h1 className={styles.title}>My Patients</h1>
 
+      {successMsg && <div className={styles.success}>{successMsg}</div>}
+
       {patients.length === 0 ? (
-        <p className={styles.description}>You don't have any patients assigned yet.</p>
+        <p className={styles.description}>
+          You don't have any patients assigned yet. Go to "Available Patients" to add some.
+        </p>
       ) : (
         <div className={styles.patientsList}>
           {patients.map((patient) => (
             <div key={patient.patient_id} className={styles.patientCard}>
               <div className={styles.patientHeader}>
-                <h3 className={styles.patientName}>
-                  {patient.first_name} {patient.last_name}
-                </h3>
+                <div>
+                  <h3 className={styles.patientName}>
+                    {patient.first_name} {patient.last_name}
+                  </h3>
+                  <p className={styles.patientEmail}>{patient.email}</p>
+                </div>
                 <span className={styles.patientGender}>{patient.gender}</span>
               </div>
 
@@ -90,6 +121,14 @@ export const Patients = () => {
                   </p>
                 )}
               </div>
+
+              <button
+                className={styles.removeButton}
+                onClick={() => handleRemove(patient.patient_id)}
+                disabled={removingId === patient.patient_id}
+              >
+                {removingId === patient.patient_id ? 'Removing...' : '✕ Remove'}
+              </button>
             </div>
           ))}
         </div>
