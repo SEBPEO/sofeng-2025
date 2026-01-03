@@ -2,6 +2,180 @@ import { PrismaClient, Gender, Role } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// Helper function to convert day name to day number (0 = Sunday, 6 = Saturday)
+function dayNameToNumber(dayName: string): number {
+  const days: { [key: string]: number } = {
+    sun: 0,
+    mon: 1,
+    tue: 2,
+    wed: 3,
+    thu: 4,
+    fri: 5,
+    sat: 6,
+  };
+  return days[dayName.toLowerCase().substring(0, 3)] ?? -1;
+}
+
+// Helper function to convert time from "9:00 AM" to "09:00"
+function convertTimeTo24Hour(timeStr: string): string {
+  const trimmed = timeStr.trim();
+  const match = trimmed.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+  if (!match) return '09:00'; // Default fallback
+
+  let hours = parseInt(match[1], 10);
+  const minutes = match[2];
+  const period = match[3].toUpperCase();
+
+  if (period === 'PM' && hours !== 12) {
+    hours += 12;
+  } else if (period === 'AM' && hours === 12) {
+    hours = 0;
+  }
+
+  return `${hours.toString().padStart(2, '0')}:${minutes}`;
+}
+
+// Helper function to get day range from string like "Mon-Fri" or "Tue"
+function getDayRange(dayRangeStr: string): number[] {
+  const days: number[] = [];
+  const parts = dayRangeStr.split('-');
+
+  if (parts.length === 1) {
+    // Single day
+    const dayNum = dayNameToNumber(parts[0].trim());
+    if (dayNum >= 0) days.push(dayNum);
+  } else {
+    // Range like "Mon-Fri"
+    const startDay = dayNameToNumber(parts[0].trim());
+    const endDay = dayNameToNumber(parts[1].trim());
+    if (startDay >= 0 && endDay >= 0) {
+      if (startDay <= endDay) {
+        for (let i = startDay; i <= endDay; i++) {
+          days.push(i);
+        }
+      } else {
+        // Handle wrap-around (e.g., Sat-Mon)
+        for (let i = startDay; i <= 6; i++) {
+          days.push(i);
+        }
+        for (let i = 0; i <= endDay; i++) {
+          days.push(i);
+        }
+      }
+    }
+  }
+  return days;
+}
+
+// Parse working hours string and return availability entries
+function parseWorkingHours(workingHours: string): Array<{
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  duration_minutes: number;
+}> {
+  const availabilities: Array<{
+    day_of_week: number;
+    start_time: string;
+    end_time: string;
+    duration_minutes: number;
+  }> = [];
+
+  // Handle special case: 24/7
+  if (workingHours.toLowerCase().includes('24/7')) {
+    for (let day = 0; day <= 6; day++) {
+      availabilities.push({
+        day_of_week: day,
+        start_time: '00:00',
+        end_time: '23:59',
+        duration_minutes: 30,
+      });
+    }
+    return availabilities;
+  }
+
+  // Split by comma to handle multiple time slots (e.g., "Mon-Fri: 9:00 AM - 5:00 PM, Sat: 9:00 AM - 1:00 PM")
+  const parts = workingHours.split(',');
+
+  for (const part of parts) {
+    const match = part.match(
+      /([A-Za-z-]+):\s*(\d{1,2}:\d{2}\s*[AP]M)\s*-\s*(\d{1,2}:\d{2}\s*[AP]M)/i,
+    );
+    if (!match) continue;
+
+    const dayRange = match[1].trim();
+    const startTime = convertTimeTo24Hour(match[2].trim());
+    const endTime = convertTimeTo24Hour(match[3].trim());
+    const days = getDayRange(dayRange);
+
+    // Calculate duration in minutes (default 30, but can be adjusted)
+    const startMinutes = parseInt(startTime.split(':')[0]) * 60 + parseInt(startTime.split(':')[1]);
+    const endMinutes = parseInt(endTime.split(':')[0]) * 60 + parseInt(endTime.split(':')[1]);
+    const totalMinutes = endMinutes - startMinutes;
+    // Use 30 minutes as default, but if the slot is less than 60 minutes, use 15
+    const duration = totalMinutes < 60 ? 15 : 30;
+
+    for (const day of days) {
+      availabilities.push({
+        day_of_week: day,
+        start_time: startTime,
+        end_time: endTime,
+        duration_minutes: duration,
+      });
+    }
+  }
+
+  return availabilities;
+}
+
+// Create availability for a doctor
+async function createAvailabilityForDoctor(doctorId: number, workingHours: string): Promise<void> {
+  // Check if availability already exists
+  const existingAvailability = await prisma.availability.findFirst({
+    where: { doctor_id: doctorId },
+  });
+
+  if (existingAvailability) {
+    console.log(`   ⏭️  Availability already exists for doctor ${doctorId}, skipping...`);
+    return;
+  }
+
+  const availabilities = parseWorkingHours(workingHours);
+
+  if (availabilities.length === 0) {
+    console.log(`   ⚠️  Could not parse working hours: "${workingHours}"`);
+    return;
+  }
+
+  // Create availability entries
+  for (const availability of availabilities) {
+    try {
+      await prisma.availability.create({
+        data: {
+          doctor_id: doctorId,
+          day_of_week: availability.day_of_week,
+          start_time: availability.start_time,
+          end_time: availability.end_time,
+          duration_minutes: availability.duration_minutes,
+          is_available: true,
+        },
+      });
+    } catch (error: unknown) {
+      // Ignore unique constraint errors (availability already exists for this day)
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
+        // Unique constraint violation - availability already exists for this day, skip
+        return;
+      }
+      console.error(
+        `   ❌ Error creating availability for day ${availability.day_of_week}:`,
+        error,
+      );
+    }
+  }
+
+  console.log(`   ✅ Created ${availabilities.length} availability entries`);
+}
+
 const doctors = [
   {
     first_name: 'Sarah',
@@ -126,6 +300,8 @@ async function main() {
 
   for (const doctorData of doctors) {
     try {
+      let doctorId: number;
+
       // Check if user already exists
       const existingUser = await prisma.user.findUnique({
         where: { email: doctorData.email },
@@ -134,13 +310,13 @@ async function main() {
 
       if (existingUser) {
         if (existingUser.doctor_profile) {
+          doctorId = existingUser.doctor_profile.doctor_id;
           console.log(
-            `⏭️  Doctor ${doctorData.first_name} ${doctorData.last_name} already exists, skipping...`,
+            `⏭️  Doctor ${doctorData.first_name} ${doctorData.last_name} already exists (ID: ${doctorId})`,
           );
-          continue;
         } else {
           // User exists but no doctor profile, create one
-          await prisma.doctorProfile.create({
+          const doctorProfile = await prisma.doctorProfile.create({
             data: {
               doctor_id: nextDoctorId++,
               user_id: existingUser.user_id,
@@ -151,40 +327,44 @@ async function main() {
               working_hours: doctorData.working_hours,
             },
           });
+          doctorId = doctorProfile.doctor_id;
           console.log(
-            `✅ Created doctor profile for ${doctorData.first_name} ${doctorData.last_name}`,
+            `✅ Created doctor profile for ${doctorData.first_name} ${doctorData.last_name} (ID: ${doctorId})`,
           );
-          continue;
         }
+      } else {
+        // Create new user
+        const user = await prisma.user.create({
+          data: {
+            first_name: doctorData.first_name,
+            last_name: doctorData.last_name,
+            email: doctorData.email,
+            gender: doctorData.gender,
+            role: 'doctor' as Role,
+          },
+        });
+
+        // Create doctor profile
+        const doctorProfile = await prisma.doctorProfile.create({
+          data: {
+            doctor_id: nextDoctorId++,
+            user_id: user.user_id,
+            specialization: doctorData.specialization,
+            experience_years: doctorData.experience_years,
+            clinic_address: doctorData.clinic_address,
+            contact_info: doctorData.contact_info,
+            working_hours: doctorData.working_hours,
+          },
+        });
+        doctorId = doctorProfile.doctor_id;
+
+        console.log(
+          `✅ Created doctor: ${doctorData.first_name} ${doctorData.last_name} (${doctorData.specialization}, ID: ${doctorId})`,
+        );
       }
 
-      // Create new user
-      const user = await prisma.user.create({
-        data: {
-          first_name: doctorData.first_name,
-          last_name: doctorData.last_name,
-          email: doctorData.email,
-          gender: doctorData.gender,
-          role: 'doctor' as Role,
-        },
-      });
-
-      // Create doctor profile
-      await prisma.doctorProfile.create({
-        data: {
-          doctor_id: nextDoctorId++,
-          user_id: user.user_id,
-          specialization: doctorData.specialization,
-          experience_years: doctorData.experience_years,
-          clinic_address: doctorData.clinic_address,
-          contact_info: doctorData.contact_info,
-          working_hours: doctorData.working_hours,
-        },
-      });
-
-      console.log(
-        `✅ Created doctor: ${doctorData.first_name} ${doctorData.last_name} (${doctorData.specialization})`,
-      );
+      // Create availability for the doctor
+      await createAvailabilityForDoctor(doctorId, doctorData.working_hours);
     } catch (error) {
       console.error(
         `❌ Error creating doctor ${doctorData.first_name} ${doctorData.last_name}:`,

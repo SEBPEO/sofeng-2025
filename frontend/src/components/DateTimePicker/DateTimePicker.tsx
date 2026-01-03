@@ -9,11 +9,22 @@ export interface DateTimePickerProps {
   error?: string;
   placeholder?: string;
   disabled?: boolean;
+  showTime?: boolean;
 }
 
 const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
 ];
 
 const DAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -24,9 +35,11 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = ({
   minDate = new Date(),
   label,
   error,
-  placeholder = 'Select date and time',
+  placeholder,
   disabled = false,
+  showTime = true,
 }) => {
+  const defaultPlaceholder = showTime ? 'Select date and time' : 'Select date';
   const [isOpen, setIsOpen] = useState(false);
   const [viewDate, setViewDate] = useState<Date>(() => {
     if (value) return new Date(value);
@@ -78,27 +91,42 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = ({
     return new Date(year, month, 1).getDay();
   }, []);
 
-  const isDateDisabled = useCallback((date: Date) => {
-    const today = new Date(minDate);
-    today.setHours(0, 0, 0, 0);
-    const compareDate = new Date(date);
-    compareDate.setHours(0, 0, 0, 0);
-    return compareDate < today;
-  }, [minDate]);
+  const isDateDisabled = useCallback(
+    (date: Date) => {
+      const today = new Date(minDate);
+      today.setHours(0, 0, 0, 0);
+      const compareDate = new Date(date);
+      compareDate.setHours(0, 0, 0, 0);
+      return compareDate < today;
+    },
+    [minDate],
+  );
 
   const handlePrevMonth = () => {
-    setViewDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+    setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
   };
 
   const handleNextMonth = () => {
-    setViewDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+    setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
   };
 
   const handleDateSelect = (day: number) => {
-    const newDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), day, selectedHour, selectedMinute);
+    const newDate = new Date(
+      viewDate.getFullYear(),
+      viewDate.getMonth(),
+      day,
+      selectedHour,
+      selectedMinute,
+    );
     if (!isDateDisabled(newDate)) {
       setSelectedDate(newDate);
+      // Emit the change - this calls the parent onChange
       emitChange(newDate, selectedHour, selectedMinute);
+      // Auto-close when date is selected and time picker is hidden
+      if (!showTime) {
+        // Use setTimeout to ensure the onChange has been processed
+        setTimeout(() => setIsOpen(false), 0);
+      }
     }
   };
 
@@ -135,10 +163,12 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = ({
       month: 'short',
       day: 'numeric',
       year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
     };
+    if (showTime) {
+      options.hour = 'numeric';
+      options.minute = '2-digit';
+      options.hour12 = true;
+    }
     return selectedDate.toLocaleDateString('en-US', options);
   };
 
@@ -158,7 +188,8 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = ({
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day);
       const isDisabled = isDateDisabled(date);
-      const isSelected = selectedDate &&
+      const isSelected =
+        selectedDate &&
         selectedDate.getDate() === day &&
         selectedDate.getMonth() === month &&
         selectedDate.getFullYear() === year;
@@ -169,11 +200,14 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = ({
           key={day}
           type="button"
           className={`${styles.day} ${isSelected ? styles.selected : ''} ${isDisabled ? styles.disabled : ''} ${isToday ? styles.today : ''}`}
-          onClick={() => handleDateSelect(day)}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDateSelect(day);
+          }}
           disabled={isDisabled}
         >
           {day}
-        </button>
+        </button>,
       );
     }
 
@@ -209,7 +243,7 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = ({
   return (
     <div className={styles.wrapper} ref={containerRef}>
       {label && <label className={styles.label}>{label}</label>}
-      
+
       <button
         type="button"
         className={`${styles.trigger} ${error ? styles.hasError : ''} ${disabled ? styles.disabled : ''}`}
@@ -218,76 +252,85 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = ({
       >
         <span className={styles.calendarIcon}>📅</span>
         <span className={selectedDate ? styles.value : styles.placeholder}>
-          {selectedDate ? formatDisplayValue() : placeholder}
+          {selectedDate ? formatDisplayValue() : placeholder || defaultPlaceholder}
         </span>
         <span className={`${styles.chevron} ${isOpen ? styles.open : ''}`}>▾</span>
       </button>
 
       {isOpen && (
-        <div className={styles.dropdown}>
+        <div
+          className={`${styles.dropdown} ${!showTime ? styles.dateOnly : ''}`}
+          onClick={(e) => e.stopPropagation()}
+        >
           {/* Calendar */}
           <div className={styles.calendar}>
             <div className={styles.header}>
-              <button type="button" onClick={handlePrevMonth} className={styles.navButton}>‹</button>
+              <button type="button" onClick={handlePrevMonth} className={styles.navButton}>
+                ‹
+              </button>
               <span className={styles.monthYear}>
                 {MONTHS[viewDate.getMonth()].slice(0, 3)} {viewDate.getFullYear()}
               </span>
-              <button type="button" onClick={handleNextMonth} className={styles.navButton}>›</button>
+              <button type="button" onClick={handleNextMonth} className={styles.navButton}>
+                ›
+              </button>
             </div>
             <div className={styles.dayNames}>
               {DAYS.map((day, i) => (
-                <div key={i} className={styles.dayName}>{day}</div>
+                <div key={i} className={styles.dayName}>
+                  {day}
+                </div>
               ))}
             </div>
-            <div className={styles.daysGrid}>
-              {renderCalendarDays()}
-            </div>
+            <div className={styles.daysGrid}>{renderCalendarDays()}</div>
           </div>
 
-          {/* Time picker side panel */}
-          <div className={styles.timePicker}>
-            <div className={styles.timeLabel}>⏰ Time</div>
-            <div className={styles.timeSelectors}>
-              <div className={styles.timeColumn}>
-                <span className={styles.timeColumnLabel}>Hour</span>
-                <div className={styles.timeOptions}>
-                  {generateHours().map(hour => (
-                    <button
-                      key={hour}
-                      type="button"
-                      className={`${styles.timeOption} ${selectedHour === hour ? styles.selected : ''}`}
-                      onClick={() => handleHourChange(hour)}
-                    >
-                      {formatHour(hour)}
-                    </button>
-                  ))}
+          {/* Time picker side panel - only show when showTime is true */}
+          {showTime && (
+            <div className={styles.timePicker}>
+              <div className={styles.timeLabel}>⏰ Time</div>
+              <div className={styles.timeSelectors}>
+                <div className={styles.timeColumn}>
+                  <span className={styles.timeColumnLabel}>Hour</span>
+                  <div className={styles.timeOptions}>
+                    {generateHours().map((hour) => (
+                      <button
+                        key={hour}
+                        type="button"
+                        className={`${styles.timeOption} ${selectedHour === hour ? styles.selected : ''}`}
+                        onClick={() => handleHourChange(hour)}
+                      >
+                        {formatHour(hour)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className={styles.timeColumn}>
+                  <span className={styles.timeColumnLabel}>Min</span>
+                  <div className={styles.timeOptions}>
+                    {generateMinutes().map((minute) => (
+                      <button
+                        key={minute}
+                        type="button"
+                        className={`${styles.timeOption} ${selectedMinute === minute ? styles.selected : ''}`}
+                        onClick={() => handleMinuteChange(minute)}
+                      >
+                        :{formatMinuteDisplay(minute)}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
-              <div className={styles.timeColumn}>
-                <span className={styles.timeColumnLabel}>Min</span>
-                <div className={styles.timeOptions}>
-                  {generateMinutes().map(minute => (
-                    <button
-                      key={minute}
-                      type="button"
-                      className={`${styles.timeOption} ${selectedMinute === minute ? styles.selected : ''}`}
-                      onClick={() => handleMinuteChange(minute)}
-                    >
-                      :{formatMinuteDisplay(minute)}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <button
+                type="button"
+                className={styles.confirmButton}
+                onClick={() => setIsOpen(false)}
+                disabled={!selectedDate}
+              >
+                Done
+              </button>
             </div>
-            <button
-              type="button"
-              className={styles.confirmButton}
-              onClick={() => setIsOpen(false)}
-              disabled={!selectedDate}
-            >
-              Done
-            </button>
-          </div>
+          )}
         </div>
       )}
 
@@ -297,4 +340,3 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = ({
 };
 
 export default DateTimePicker;
-

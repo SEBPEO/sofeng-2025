@@ -50,6 +50,7 @@ model DoctorProfile{
     user            User          @relation(fields: [user_id], references: [user_id])
     appointments    Appointment[]
     patients        DoctorPatient[] @relation("DoctorToPatient")
+    availability    Availability[]
 
 }
 
@@ -122,6 +123,20 @@ enum AppointmentStatus {
     scheduled
     completed
     cancelled
+}
+
+model Availability {
+    availability_id     Int      @id @default(autoincrement())
+    doctor_id           Int
+    day_of_week         Int      // 0-6 for Sunday-Saturday
+    start_time          String   @db.VarChar(5) // Format "HH:mm"
+    end_time            String   @db.VarChar(5) // Format "HH:mm"
+    duration_minutes    Int      // Default appointment duration for this day
+    is_available        Boolean  @default(true)
+
+    doctor              DoctorProfile @relation(fields: [doctor_id], references: [doctor_id], onDelete: Cascade)
+
+    @@unique([doctor_id, day_of_week])
 }
 
 

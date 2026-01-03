@@ -1,4 +1,5 @@
-import { Injectable, ExecutionContext, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, ExecutionContext } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { UsersService } from '../../users/users.service';
 
@@ -8,11 +9,16 @@ import { UsersService } from '../../users/users.service';
 // ============================================================================
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
-  constructor(
-    @Inject(forwardRef(() => UsersService))
-    private usersService: UsersService,
-  ) {
+  constructor(private moduleRef: ModuleRef) {
     super();
+  }
+
+  private async getUsersService(): Promise<UsersService | null> {
+    try {
+      return this.moduleRef.get(UsersService, { strict: false });
+    } catch {
+      return null;
+    }
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -23,8 +29,23 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     const request = context.switchToHttp().getRequest();
     const devEmail = 'kemplent@gmail.com';
 
+    // Try to get UsersService lazily
+    const usersService = await this.getUsersService();
+
+    if (!usersService) {
+      // If service is not available, use mock user
+      request.user = {
+        userId: 'dev-user-id',
+        sub: 'dev-user-id',
+        email: devEmail,
+        name: devEmail,
+        picture: undefined,
+      };
+      return true; // Always allow in dev mode
+    }
+
     try {
-      const devUser = await this.usersService.findByEmail(devEmail);
+      const devUser = await usersService.findByEmail(devEmail);
 
       if (devUser) {
         request.user = {

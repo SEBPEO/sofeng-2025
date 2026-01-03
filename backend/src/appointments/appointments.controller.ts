@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   Req,
   UseGuards,
   ParseIntPipe,
@@ -64,6 +65,24 @@ export class AppointmentsController {
   @Get('doctors')
   async findAllDoctors() {
     return this.appointmentsService.findAllDoctors();
+  }
+
+  @Get('doctors/:doctorId/available-slots')
+  async getAvailableSlots(
+    @Param('doctorId', ParseIntPipe) doctorId: number,
+    @Query('date') date: string,
+  ) {
+    if (!date) {
+      throw new Error('Date query parameter is required (format: YYYY-MM-DD)');
+    }
+
+    // Validate date format
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(date)) {
+      throw new Error('Date must be in YYYY-MM-DD format');
+    }
+
+    return await this.appointmentsService.getAvailableSlots(doctorId, date);
   }
 
   @Get(':id')

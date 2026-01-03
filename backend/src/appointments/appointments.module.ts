@@ -7,9 +7,10 @@ import { GoogleCalendarService } from './google-calendar.service';
 // TODO: RESTORE AUTH VALIDATION - Remove UsersModule import if not needed
 // ============================================================================
 import { UsersModule } from '../users/users.module';
+import { AvailabilityModule } from '../availability/availability.module';
 
 @Module({
-  imports: [UsersModule], // Required for JwtAuthGuard to inject UsersService
+  imports: [UsersModule, AvailabilityModule], // Required for JwtAuthGuard to inject UsersService
   controllers: [AppointmentsController],
   providers: [AppointmentsService, GoogleCalendarService],
   exports: [AppointmentsService],
