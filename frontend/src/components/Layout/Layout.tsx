@@ -26,6 +26,7 @@ export const Layout = () => {
 
   // Different menu items for doctors vs patients
   const getDoctorNavItems = () => [
+    { path: '/appointments', icon: '📅', label: 'Appointments' },
     { path: '/patients', icon: '❤️', label: 'My Patients' },
     { path: '/available-patients', icon: '👥', label: 'Available Patients' },
     { path: '/profile', icon: '⚙️', label: 'Profile' },
@@ -33,6 +34,7 @@ export const Layout = () => {
   ];
 
   const getPatientNavItems = () => [
+    { path: '/appointments', icon: '📅', label: 'Appointments' },
     { path: '/my-doctor', icon: '👨‍⚕️', label: 'My Doctor' },
     { path: '/profile', icon: '⚙️', label: 'Profile' },
     { path: '/legal', icon: '📄', label: 'Legal' },
