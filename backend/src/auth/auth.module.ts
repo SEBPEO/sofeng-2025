@@ -8,16 +8,7 @@ import { GoogleStrategy } from './strategies/google.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { ConfigService } from '@nestjs/config';
 import { GithubStrategy } from './strategies/github.strategy';
-// ============================================================================
-// TEMPORARY DEV MODE: Export JwtAuthGuard for use in other modules
-// TODO: RESTORE AUTH VALIDATION - Remove export if not needed
-// ============================================================================
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
-// ============================================================================
-// TEMPORARY DEV MODE: Auth validation bypassed
-// TODO: RESTORE AUTH VALIDATION - Ensure JwtStrategy has proper validation
-// ============================================================================
 @Module({
   imports: [
     UsersModule,
@@ -31,7 +22,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, GoogleStrategy, JwtStrategy, GithubStrategy, JwtAuthGuard],
-  exports: [AuthService, JwtAuthGuard], // Export guard for use in other modules
+  providers: [AuthService, GoogleStrategy, JwtStrategy, GithubStrategy],
+  exports: [AuthService],
 })
 export class AuthModule {}

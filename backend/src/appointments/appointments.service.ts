@@ -9,7 +9,6 @@ import { PrismaClient, AppointmentStatus } from '@prisma/client';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { AppointmentResponseDto } from './dto/appointment-response.dto';
-import { GoogleCalendarService } from './google-calendar.service';
 import { AvailabilityService } from '../availability/availability.service';
 
 const prisma = new PrismaClient();
@@ -19,14 +18,12 @@ export class AppointmentsService {
   private readonly logger = new Logger(AppointmentsService.name);
 
   constructor(
-    private readonly googleCalendarService: GoogleCalendarService,
     private readonly availabilityService: AvailabilityService,
   ) {}
 
   async create(
     patientId: number,
     createAppointmentDto: CreateAppointmentDto,
-    userEmail: string,
   ): Promise<AppointmentResponseDto> {
     const appointmentDateTime = new Date(createAppointmentDto.appointment_datetime);
 
@@ -127,21 +124,6 @@ export class AppointmentsService {
       },
     });
 
-    // Sync to Google Calendar
-    try {
-      const eventId = await this.googleCalendarService.createEvent(appointment, doctor, userEmail);
-      if (eventId) {
-        await prisma.appointment.update({
-          where: { appointment_id: appointment.appointment_id },
-          data: { google_calendar_event_id: eventId },
-        });
-        appointment.google_calendar_event_id = eventId;
-      }
-    } catch (error) {
-      this.logger.error('Failed to sync appointment to Google Calendar', error);
-      // Continue even if calendar sync fails
-    }
-
     return this.mapToResponseDto(appointment);
   }
 
@@ -202,7 +184,6 @@ export class AppointmentsService {
     appointmentId: number,
     patientId: number,
     updateAppointmentDto: UpdateAppointmentDto,
-    userEmail: string,
   ): Promise<AppointmentResponseDto> {
     const appointment = await prisma.appointment.findUnique({
       where: { appointment_id: appointmentId },
@@ -324,24 +305,10 @@ export class AppointmentsService {
       },
     });
 
-    // Sync to Google Calendar
-    if (updateAppointmentDto.appointment_datetime && appointment.google_calendar_event_id) {
-      try {
-        await this.googleCalendarService.updateEvent(
-          appointment.google_calendar_event_id,
-          updatedAppointment,
-          userEmail,
-        );
-      } catch (error) {
-        this.logger.error('Failed to update appointment in Google Calendar', error);
-        // Continue even if calendar sync fails
-      }
-    }
-
     return this.mapToResponseDto(updatedAppointment);
   }
 
-  async cancel(appointmentId: number, patientId: number, userEmail: string): Promise<void> {
+  async cancel(appointmentId: number, patientId: number): Promise<void> {
     const appointment = await prisma.appointment.findUnique({
       where: { appointment_id: appointmentId },
     });
@@ -366,19 +333,6 @@ export class AppointmentsService {
       where: { appointment_id: appointmentId },
       data: { status: 'cancelled' },
     });
-
-    // Delete from Google Calendar
-    if (appointment.google_calendar_event_id) {
-      try {
-        await this.googleCalendarService.deleteEvent(
-          appointment.google_calendar_event_id,
-          userEmail,
-        );
-      } catch (error) {
-        this.logger.error('Failed to delete appointment from Google Calendar', error);
-        // Continue even if calendar sync fails
-      }
-    }
   }
 
   async findAllDoctors() {
@@ -420,7 +374,6 @@ export class AppointmentsService {
       duration_minutes: appointment.duration_minutes,
       status: appointment.status,
       notes: appointment.notes,
-      google_calendar_event_id: appointment.google_calendar_event_id,
       doctor: {
         doctor_id: appointment.doctor.doctor_id,
         user_id: appointment.doctor.user_id,

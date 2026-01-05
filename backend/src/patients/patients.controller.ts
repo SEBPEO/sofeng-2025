@@ -8,7 +8,7 @@ import {
   Request,
   BadRequestException,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { PatientsService } from './patients.service';
 
 @Controller('patients')
@@ -31,7 +31,7 @@ export class PatientsController {
    * Protected: requires JWT
    */
   @Get('available')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   async getAvailablePatients(@Request() req) {
     const doctorUserId = req.user.userId;
     return await this.patientsService.getAvailablePatients(doctorUserId);
@@ -43,7 +43,7 @@ export class PatientsController {
    * Protected: requires JWT
    */
   @Get('my')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   async getMyPatients(@Request() req) {
     const doctorUserId = req.user.userId;
     return await this.patientsService.getMyPatients(doctorUserId);
@@ -55,7 +55,7 @@ export class PatientsController {
    * Protected: requires JWT
    */
   @Post(':patientId/assign')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   async assignPatient(@Param('patientId') patientId: string, @Request() req) {
     const doctorUserId = req.user.userId;
     const patientIdNum = parseInt(patientId, 10);
@@ -77,7 +77,7 @@ export class PatientsController {
    * Protected: requires JWT
    */
   @Delete(':patientId/unassign')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   async unassignPatient(@Param('patientId') patientId: string, @Request() req) {
     const doctorUserId = req.user.userId;
     const patientIdNum = parseInt(patientId, 10);
@@ -99,7 +99,7 @@ export class PatientsController {
    * Protected: requires JWT
    */
   @Get('my-doctors')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   async getMyDoctors(@Request() req) {
     const patientUserId = req.user.userId;
     return await this.patientsService.getMyDoctors(patientUserId);

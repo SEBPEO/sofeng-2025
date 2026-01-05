@@ -35,7 +35,6 @@ export class AppointmentResponseDto {
   duration_minutes: number | null;
   status: AppointmentStatus;
   notes: string | null;
-  google_calendar_event_id: string | null;
   doctor: DoctorInfoDto;
   patient: PatientInfoDto;
 }

@@ -17,7 +17,6 @@ model User{
     role                 Role 
     createdAt            DateTime    @default(now())
     lastLogin            DateTime?
-    google_refresh_token String?
     
     sentMessages        Chat[]      @relation("SentMessages")
     receivedMessages    Chat[]      @relation("ReceivedMessages")
@@ -75,8 +74,7 @@ model Appointment {
     appointment_datetime     DateTime
     duration_minutes         Int?
     status                   AppointmentStatus
-    notes                    String? 
-    google_calendar_event_id String?
+    notes                    String?
 
     doctor          DoctorProfile @relation(fields: [doctor_id], references: [doctor_id])
     patient         PatientProfile @relation(fields: [patient_id], references: [patient_id])

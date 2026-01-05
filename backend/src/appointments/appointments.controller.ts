@@ -11,11 +11,7 @@ import {
   UseGuards,
   ParseIntPipe,
 } from '@nestjs/common';
-// ============================================================================
-// TEMPORARY DEV MODE: Using JwtAuthGuard instead of AuthGuard('jwt') for dev bypass
-// TODO: RESTORE AUTH VALIDATION - Replace JwtAuthGuard with AuthGuard('jwt')
-// ============================================================================
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
@@ -24,7 +20,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 @Controller('appointments')
-@UseGuards(JwtAuthGuard)
+@UseGuards(AuthGuard('jwt'))
 export class AppointmentsController {
   constructor(private readonly appointmentsService: AppointmentsService) {}
 
@@ -43,7 +39,6 @@ export class AppointmentsController {
     return this.appointmentsService.create(
       user.patient_profile.patient_id,
       createAppointmentDto,
-      user.email,
     );
   }
 
@@ -120,7 +115,6 @@ export class AppointmentsController {
       id,
       user.patient_profile.patient_id,
       updateAppointmentDto,
-      user.email,
     );
   }
 
@@ -136,7 +130,7 @@ export class AppointmentsController {
       throw new Error('Patient profile not found');
     }
 
-    await this.appointmentsService.cancel(id, user.patient_profile.patient_id, user.email);
+    await this.appointmentsService.cancel(id, user.patient_profile.patient_id);
     return { message: 'Appointment cancelled successfully' };
   }
 }
