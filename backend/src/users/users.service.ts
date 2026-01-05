@@ -231,10 +231,6 @@ export class UsersService {
         lastLogin: new Date(),
       };
 
-      if (profile.refreshToken) {
-        updateData.google_refresh_token = profile.refreshToken;
-      }
-
       const dbUser = await this.prisma.user.upsert({
         where: { email: profile.email },
         update: updateData,
@@ -246,7 +242,6 @@ export class UsersService {
           gender: 'male',
           createdAt: new Date(),
           lastLogin: new Date(),
-          google_refresh_token: profile.refreshToken || null,
         },
       });
 

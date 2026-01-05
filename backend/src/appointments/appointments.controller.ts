@@ -43,7 +43,6 @@ export class AppointmentsController {
     return this.appointmentsService.create(
       user.patient_profile.patient_id,
       createAppointmentDto,
-      user.email,
     );
   }
 
@@ -120,7 +119,6 @@ export class AppointmentsController {
       id,
       user.patient_profile.patient_id,
       updateAppointmentDto,
-      user.email,
     );
   }
 
@@ -136,7 +134,7 @@ export class AppointmentsController {
       throw new Error('Patient profile not found');
     }
 
-    await this.appointmentsService.cancel(id, user.patient_profile.patient_id, user.email);
+    await this.appointmentsService.cancel(id, user.patient_profile.patient_id);
     return { message: 'Appointment cancelled successfully' };
   }
 }

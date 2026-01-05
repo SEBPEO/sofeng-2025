@@ -24,7 +24,6 @@ export interface Appointment {
   duration_minutes: number | null;
   status: 'scheduled' | 'completed' | 'cancelled';
   notes: string | null;
-  google_calendar_event_id: string | null;
   doctor: {
     doctor_id: number;
     user_id: string;
