@@ -1,16 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   getAppointments,
   createAppointment,
   updateAppointment,
   cancelAppointment,
+  requestReschedule,
+  respondReschedule,
   type Appointment,
   type CreateAppointmentDto,
   type UpdateAppointmentDto,
+  type RequestRescheduleDto,
 } from '@/store/appointments/appointmentsApi';
 import { AppointmentList } from '../../components/AppointmentList';
 import { AppointmentForm, type AppointmentFormData } from '../../components/AppointmentForm';
 import { Button } from '@/components';
+import { useAppSelector } from '@/store/hooks';
 import styles from './Appointments.module.css';
 
 export const Appointments = () => {
@@ -19,6 +23,10 @@ export const Appointments = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [error, setError] = useState<string | null>(null);
+  
+  // Get current user to determine role
+  const currentUser = useAppSelector((state) => state.users?.current);
+  const isDoctor = currentUser?.role === 'doctor';
 
   useEffect(() => {
     loadAppointments();
@@ -48,6 +56,7 @@ export const Appointments = () => {
         appointment_datetime: appointmentDateTime,
         duration_minutes: formData.duration_minutes,
         notes: formData.notes,
+        patient_consent_to_record: formData.patient_consent_to_record,
       };
       await createAppointment(createDto);
       await loadAppointments();
@@ -73,12 +82,25 @@ export const Appointments = () => {
       const appointmentDateTime = formData.appointment_datetime
         ? new Date(formData.appointment_datetime).toISOString()
         : undefined;
-      const updateDto: UpdateAppointmentDto = {
-        appointment_datetime: appointmentDateTime,
-        duration_minutes: formData.duration_minutes,
-        notes: formData.notes,
-      };
-      await updateAppointment(editingAppointment.appointment_id, updateDto);
+      if (isDoctor) {
+        if (!appointmentDateTime) {
+          setError('Please select a new date and time to request a reschedule.');
+          return;
+        }
+        const reqDto: RequestRescheduleDto = {
+          proposed_appointment_datetime: appointmentDateTime!,
+          reschedule_note: formData.notes,
+        };
+        await requestReschedule(editingAppointment.appointment_id, reqDto);
+      } else {
+        const updateDto: UpdateAppointmentDto = {
+          appointment_datetime: appointmentDateTime,
+          duration_minutes: formData.duration_minutes,
+          notes: formData.notes,
+          patient_consent_to_record: formData.patient_consent_to_record,
+        };
+        await updateAppointment(editingAppointment.appointment_id, updateDto);
+      }
       await loadAppointments();
       setShowForm(false);
       setEditingAppointment(null);
@@ -109,6 +131,17 @@ export const Appointments = () => {
     setShowForm(true);
   };
 
+  const handleRespondReschedule = async (appointment: Appointment, accept: boolean) => {
+    try {
+      setError(null);
+      await respondReschedule(appointment.appointment_id, accept);
+      await loadAppointments();
+    } catch (err: any) {
+      console.error('Failed to respond to reschedule:', err);
+      setError(err.response?.data?.message || 'Failed to respond to reschedule');
+    }
+  };
+
   const handleCancelForm = () => {
     setShowForm(false);
     setEditingAppointment(null);
@@ -118,8 +151,10 @@ export const Appointments = () => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1 className={styles.title}>My Appointments</h1>
-        {!showForm && (
+        <h1 className={styles.title}>
+          {isDoctor ? 'Patient Appointments' : 'My Appointments'}
+        </h1>
+        {!showForm && !isDoctor && (
           <Button onClick={handleNewAppointment}>Schedule New Appointment</Button>
         )}
       </div>
@@ -140,6 +175,7 @@ export const Appointments = () => {
                     appointment_datetime: editingAppointment.appointment_datetime,
                     duration_minutes: editingAppointment.duration_minutes || 30,
                     notes: editingAppointment.notes || '',
+                    patient_consent_to_record: editingAppointment.patient_consent_to_record,
                   }
                 : undefined
             }
@@ -153,6 +189,7 @@ export const Appointments = () => {
           appointments={appointments}
           onReschedule={handleReschedule}
           onCancel={handleCancel}
+          onRespondReschedule={handleRespondReschedule}
           loading={loading}
         />
       )}

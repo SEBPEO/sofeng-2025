@@ -8,6 +8,7 @@ import { AppointmentsModule } from './appointments/appointments.module';
 import { PatientsModule } from './patients/patients.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AvailabilityModule } from './availability/availability.module';
+import { ConsultationsModule } from './consultations/consultations.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { AvailabilityModule } from './availability/availability.module';
     AppointmentsModule,
     PatientsModule,
     AvailabilityModule,
+    ConsultationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

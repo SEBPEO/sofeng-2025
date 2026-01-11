@@ -10,6 +10,7 @@ import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { AppointmentResponseDto } from './dto/appointment-response.dto';
 import { AvailabilityService } from '../availability/availability.service';
+import { RequestRescheduleDto } from './dto/request-reschedule.dto';
 
 const prisma = new PrismaClient();
 
@@ -109,6 +110,7 @@ export class AppointmentsService {
         duration_minutes: duration,
         status: 'scheduled',
         notes: createAppointmentDto.notes,
+        patient_consent_to_record: createAppointmentDto.patient_consent_to_record,
       },
       include: {
         doctor: {
@@ -131,6 +133,31 @@ export class AppointmentsService {
     const appointments = await prisma.appointment.findMany({
       where: {
         patient_id: patientId,
+      },
+      include: {
+        doctor: {
+          include: {
+            user: true,
+          },
+        },
+        patient: {
+          include: {
+            user: true,
+          },
+        },
+      },
+      orderBy: {
+        appointment_datetime: 'asc',
+      },
+    });
+
+    return appointments.map((appointment) => this.mapToResponseDto(appointment));
+  }
+
+  async findAllForDoctor(doctorId: number): Promise<AppointmentResponseDto[]> {
+    const appointments = await prisma.appointment.findMany({
+      where: {
+        doctor_id: doctorId,
       },
       include: {
         doctor: {
@@ -288,6 +315,10 @@ export class AppointmentsService {
       updateData.notes = updateAppointmentDto.notes;
     }
 
+    if (updateAppointmentDto.patient_consent_to_record !== undefined) {
+      updateData.patient_consent_to_record = updateAppointmentDto.patient_consent_to_record;
+    }
+
     const updatedAppointment = await prisma.appointment.update({
       where: { appointment_id: appointmentId },
       data: updateData,
@@ -308,7 +339,11 @@ export class AppointmentsService {
     return this.mapToResponseDto(updatedAppointment);
   }
 
-  async cancel(appointmentId: number, patientId: number): Promise<void> {
+  async cancel(
+    appointmentId: number,
+    actorPatientId?: number,
+    actorDoctorId?: number,
+  ): Promise<void> {
     const appointment = await prisma.appointment.findUnique({
       where: { appointment_id: appointmentId },
     });
@@ -317,7 +352,10 @@ export class AppointmentsService {
       throw new NotFoundException('Appointment not found');
     }
 
-    if (appointment.patient_id !== patientId) {
+    const isPatient = actorPatientId && appointment.patient_id === actorPatientId;
+    const isDoctor = actorDoctorId && appointment.doctor_id === actorDoctorId;
+
+    if (!isPatient && !isDoctor) {
       throw new ForbiddenException('You do not have access to this appointment');
     }
 
@@ -365,6 +403,117 @@ export class AppointmentsService {
     return this.availabilityService.getAvailableSlots(doctorId, date);
   }
 
+  async requestReschedule(
+    appointmentId: number,
+    doctorId: string,
+    requestRescheduleDto: RequestRescheduleDto,
+  ): Promise<AppointmentResponseDto> {
+    const appointment = await prisma.appointment.findUnique({
+      where: { appointment_id: appointmentId },
+      include: { doctor: { include: { user: true } }, patient: { include: { user: true } } },
+    });
+
+    if (!appointment) {
+      throw new NotFoundException('Appointment not found');
+    }
+
+    if (appointment.doctor.user_id !== doctorId) {
+      throw new ForbiddenException('Only the doctor can request a reschedule');
+    }
+
+    if (appointment.status === 'cancelled') {
+      throw new BadRequestException('Cannot reschedule a cancelled appointment');
+    }
+
+    const proposedDateTime = new Date(requestRescheduleDto.proposed_appointment_datetime);
+    if (proposedDateTime < new Date()) {
+      throw new BadRequestException('Proposed appointment must be in the future');
+    }
+
+    // Validate the proposed time is available
+    const proposedDate = proposedDateTime.toISOString().split('T')[0];
+    const duration = appointment.duration_minutes || 30;
+    const availableSlots = await this.availabilityService.getAvailableSlots(
+      appointment.doctor_id,
+      proposedDate,
+    );
+
+    const proposedTime = proposedDateTime.toISOString();
+    const isValidSlot = availableSlots.some(
+      (slot) =>
+        slot.start_time === proposedTime && slot.duration_minutes === duration,
+    );
+
+    if (!isValidSlot) {
+      throw new BadRequestException(
+        'The proposed time slot is not available for the doctor.',
+      );
+    }
+
+    // Update appointment to pending_reschedule with proposed details
+    const updated = await prisma.appointment.update({
+      where: { appointment_id: appointmentId },
+      data: {
+        status: 'pending_reschedule',
+        proposed_appointment_datetime: proposedDateTime,
+        reschedule_note: requestRescheduleDto.reschedule_note || null,
+      },
+      include: { doctor: { include: { user: true } }, patient: { include: { user: true } } },
+    });
+
+    return this.mapToResponseDto(updated);
+  }
+
+  async respondReschedule(
+    appointmentId: number,
+    patientId: number,
+    accept: boolean,
+  ): Promise<AppointmentResponseDto> {
+    const appointment = await prisma.appointment.findUnique({
+      where: { appointment_id: appointmentId },
+      include: { doctor: { include: { user: true } }, patient: { include: { user: true } } },
+    });
+
+    if (!appointment) {
+      throw new NotFoundException('Appointment not found');
+    }
+
+    if (appointment.patient_id !== patientId) {
+      throw new ForbiddenException('Only the patient can respond to a reschedule request');
+    }
+
+    if (appointment.status !== 'pending_reschedule') {
+      throw new BadRequestException('Appointment is not pending a reschedule response');
+    }
+
+    if (accept) {
+      // Accept: update appointment_datetime to proposed and change status to scheduled
+      const updated = await prisma.appointment.update({
+        where: { appointment_id: appointmentId },
+        data: {
+          appointment_datetime: appointment.proposed_appointment_datetime!,
+          proposed_appointment_datetime: null,
+          reschedule_note: null,
+          status: 'scheduled',
+        },
+        include: { doctor: { include: { user: true } }, patient: { include: { user: true } } },
+      });
+      return this.mapToResponseDto(updated);
+    } else {
+      // Decline: revert to scheduled with original appointment_datetime, clear proposed
+      const updated = await prisma.appointment.update({
+        where: { appointment_id: appointmentId },
+        data: {
+          status: 'scheduled',
+          proposed_appointment_datetime: null,
+          reschedule_note: null,
+        },
+        include: { doctor: { include: { user: true } }, patient: { include: { user: true } } },
+      });
+      return this.mapToResponseDto(updated);
+    }
+  }
+
   private mapToResponseDto(appointment: any): AppointmentResponseDto {
     return {
       appointment_id: appointment.appointment_id,
@@ -374,6 +523,9 @@ export class AppointmentsService {
       duration_minutes: appointment.duration_minutes,
       status: appointment.status,
       notes: appointment.notes,
+      patient_consent_to_record: appointment.patient_consent_to_record,
+      proposed_appointment_datetime: appointment.proposed_appointment_datetime,
+      reschedule_note: appointment.reschedule_note,
       doctor: {
         doctor_id: appointment.doctor.doctor_id,
         user_id: appointment.doctor.user_id,

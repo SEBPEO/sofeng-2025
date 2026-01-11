@@ -16,6 +16,8 @@ import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { PrismaClient } from '@prisma/client';
+import { RequestRescheduleDto } from './dto/request-reschedule.dto';
+import { RespondRescheduleDto } from './dto/respond-reschedule.dto';
 
 const prisma = new PrismaClient();
 
@@ -47,9 +49,15 @@ export class AppointmentsController {
     const userId = req.user?.userId || req.user?.sub;
     const user = await prisma.user.findUnique({
       where: { user_id: userId },
-      include: { patient_profile: true },
+      include: { patient_profile: true, doctor_profile: true },
     });
 
+    // Check if user is a doctor
+    if (user?.doctor_profile) {
+      return this.appointmentsService.findAllForDoctor(user.doctor_profile.doctor_id);
+    }
+
+    // Otherwise, treat as patient
     if (!user || !user.patient_profile) {
       throw new Error('Patient profile not found');
     }
@@ -118,19 +126,69 @@ export class AppointmentsController {
     );
   }
 
-  @Delete(':id')
-  async cancel(@Req() req, @Param('id', ParseIntPipe) id: number) {
+  @Patch(':id/request-reschedule')
+  async requestReschedule(
+    @Req() req,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: RequestRescheduleDto,
+  ) {
+    const userId = req.user?.userId || req.user?.sub;
+    const user = await prisma.user.findUnique({
+      where: { user_id: userId },
+      include: { doctor_profile: true },
+    });
+
+    if (!user?.doctor_profile) {
+      throw new Error('Doctor profile not found');
+    }
+
+    return this.appointmentsService.requestReschedule(
+      id,
+      user.user_id,
+      dto,
+    );
+  }
+
+  @Patch(':id/respond-reschedule')
+  async respondReschedule(
+    @Req() req,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: RespondRescheduleDto,
+  ) {
     const userId = req.user?.userId || req.user?.sub;
     const user = await prisma.user.findUnique({
       where: { user_id: userId },
       include: { patient_profile: true },
     });
 
-    if (!user || !user.patient_profile) {
+    if (!user?.patient_profile) {
       throw new Error('Patient profile not found');
     }
 
-    await this.appointmentsService.cancel(id, user.patient_profile.patient_id);
+    return this.appointmentsService.respondReschedule(
+      id,
+      user.patient_profile.patient_id,
+      dto.accept,
+    );
+  }
+
+  @Delete(':id')
+  async cancel(@Req() req, @Param('id', ParseIntPipe) id: number) {
+    const userId = req.user?.userId || req.user?.sub;
+    const user = await prisma.user.findUnique({
+      where: { user_id: userId },
+      include: { patient_profile: true, doctor_profile: true },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    await this.appointmentsService.cancel(
+      id,
+      user.patient_profile?.patient_id,
+      user.doctor_profile?.doctor_id,
+    );
     return { message: 'Appointment cancelled successfully' };
   }
 }

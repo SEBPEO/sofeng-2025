@@ -1,0 +1,22 @@
+.recorder {
+  border: 1px solid #e3e3e3;
+  border-radius: 12px;
+  padding: 16px;
+  background: #fafafa;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.timer {
+  font-family: monospace;
+  color: #444;
+}
+
+.error {
+  color: #c53030;
+  margin-top: 8px;
+}
