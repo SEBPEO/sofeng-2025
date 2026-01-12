@@ -16,14 +16,22 @@ export const PatientInfoSection = ({ register, errors, isPatient }: PatientInfoS
       <h2 className={styles.sectionTitle}>Patient Information</h2>
       <div className={styles.grid}>
         <Input
-          label="Date of Birth"
+          label="Date of Birth *"
           type="date"
-          {...register('date_of_birth')}
+          {...register('date_of_birth', {
+            required: 'Date of birth is required',
+          })}
           error={errors.date_of_birth?.message as string}
         />
         <Input
-          label="Emergency Contact"
-          {...register('emergency_contact')}
+          label="Emergency Contact (Phone) *"
+          {...register('emergency_contact', {
+            required: 'Emergency contact phone number is required',
+            pattern: {
+              value: /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/,
+              message: 'Please enter a valid phone number',
+            },
+          })}
           error={errors.emergency_contact?.message as string}
           placeholder="+1 (555) 987-6543"
         />
