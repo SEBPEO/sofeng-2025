@@ -163,6 +163,12 @@
   border: 1px solid rgba(211, 47, 47, 0.2);
 }
 
+.statusPending {
+  background: rgba(255, 193, 7, 0.12);
+  color: #b28704;
+  border: 1px solid rgba(255, 193, 7, 0.2);
+}
+
 .appointmentDetails {
   display: flex;
   flex-direction: column;
@@ -202,6 +208,12 @@
 }
 
 .actionButton {
+  flex: 1;
+}
+
+.pendingNote {
+  color: var(--color-text-light);
+  font-size: 0.9rem;
   flex: 1;
 }
 

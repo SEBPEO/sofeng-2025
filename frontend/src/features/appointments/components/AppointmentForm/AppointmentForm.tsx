@@ -11,6 +11,7 @@ export interface AppointmentFormData {
   appointment_datetime: string;
   duration_minutes: number;
   notes?: string;
+  patient_consent_to_record: boolean;
 }
 
 interface AppointmentFormProps {
@@ -52,6 +53,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
       appointment_datetime: formatDateTimeForInput(initialData?.appointment_datetime),
       duration_minutes: initialData?.duration_minutes || 30,
       notes: initialData?.notes || '',
+      patient_consent_to_record: initialData?.patient_consent_to_record ?? false,
     },
   });
 
@@ -287,6 +289,27 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
           placeholder="Any additional information about your appointment..."
         />
       </div>
+
+      {!isReschedule ? (
+        <div className={styles.section}>
+          <label className={styles.checkboxLabel}>
+            <input
+              type="checkbox"
+              {...register('patient_consent_to_record', {
+                required: 'You must consent to recording to schedule this appointment',
+              })}
+            />
+            <span className={styles.checkboxText}>
+              I agree to be recorded during this consultation for care and quality purposes.
+            </span>
+          </label>
+          {errors.patient_consent_to_record && (
+            <span className={styles.errorText}>{errors.patient_consent_to_record.message}</span>
+          )}
+        </div>
+      ) : (
+        <input type="hidden" {...register('patient_consent_to_record')} />
+      )}
 
       <div className={styles.actions}>
         {onCancel && (

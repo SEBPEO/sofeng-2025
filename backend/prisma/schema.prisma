@@ -75,6 +75,9 @@ model Appointment {
     duration_minutes         Int?
     status                   AppointmentStatus
     notes                    String?
+    patient_consent_to_record Boolean   @default(false)
+    proposed_appointment_datetime DateTime?
+    reschedule_note          String?
 
     doctor          DoctorProfile @relation(fields: [doctor_id], references: [doctor_id])
     patient         PatientProfile @relation(fields: [patient_id], references: [patient_id])
@@ -93,6 +96,19 @@ model Consultation {
 
     appointment Appointment @relation(fields: [appointment_id], references: [appointment_id])
 
+    recordings ConsultationRecording[]
+
+}
+
+model ConsultationRecording {
+    consultation_recording_id Int      @id @default(autoincrement())
+    consultation_id           Int
+    file_path                 String   @db.VarChar(300)
+    created_at                DateTime @default(now())
+
+    consultation Consultation @relation(fields: [consultation_id], references: [consultation_id], onDelete: Cascade)
+
+    @@index([consultation_id])
 }
 
 model DoctorPatient {
@@ -119,6 +135,7 @@ enum Gender {
 
 enum AppointmentStatus {
     scheduled
+    pending_reschedule
     completed
     cancelled
 }

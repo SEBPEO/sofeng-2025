@@ -1,4 +1,4 @@
-import { IsDateString, IsOptional, IsString, IsInt, Min } from 'class-validator';
+import { IsDateString, IsOptional, IsString, IsInt, Min, IsBoolean } from 'class-validator';
 
 export class UpdateAppointmentDto {
   @IsOptional()
@@ -13,4 +13,8 @@ export class UpdateAppointmentDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  patient_consent_to_record?: boolean;
 }

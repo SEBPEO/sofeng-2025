@@ -35,6 +35,9 @@ export class AppointmentResponseDto {
   duration_minutes: number | null;
   status: AppointmentStatus;
   notes: string | null;
+  patient_consent_to_record: boolean;
+  proposed_appointment_datetime?: Date | null;
+  reschedule_note?: string | null;
   doctor: DoctorInfoDto;
   patient: PatientInfoDto;
 }

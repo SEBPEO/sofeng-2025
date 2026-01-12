@@ -1,4 +1,4 @@
-import { IsInt, IsDateString, IsOptional, IsString, Min } from 'class-validator';
+import { IsInt, IsDateString, IsOptional, IsString, Min, IsBoolean, Equals } from 'class-validator';
 
 export class CreateAppointmentDto {
   @IsInt()
@@ -15,4 +15,8 @@ export class CreateAppointmentDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @IsBoolean()
+  @Equals(true, { message: 'Patient consent to recording is required' })
+  patient_consent_to_record: boolean;
 }

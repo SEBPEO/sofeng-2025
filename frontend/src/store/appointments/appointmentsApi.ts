@@ -22,8 +22,11 @@ export interface Appointment {
   patient_id: number;
   appointment_datetime: string;
   duration_minutes: number | null;
-  status: 'scheduled' | 'completed' | 'cancelled';
+  status: 'scheduled' | 'pending_reschedule' | 'completed' | 'cancelled';
   notes: string | null;
+   patient_consent_to_record: boolean;
+  proposed_appointment_datetime?: string | null;
+  reschedule_note?: string | null;
   doctor: {
     doctor_id: number;
     user_id: string;
@@ -56,12 +59,35 @@ export interface CreateAppointmentDto {
   appointment_datetime: string;
   duration_minutes?: number;
   notes?: string;
+  patient_consent_to_record: boolean;
 }
 
 export interface UpdateAppointmentDto {
   appointment_datetime?: string;
   duration_minutes?: number;
   notes?: string;
+  patient_consent_to_record?: boolean;
+}
+
+export interface RequestRescheduleDto {
+  proposed_appointment_datetime: string;
+  reschedule_note?: string;
+}
+
+export async function requestReschedule(
+  id: number,
+  data: RequestRescheduleDto,
+): Promise<Appointment> {
+  const response = await apiClient.patch<Appointment>(`/appointments/${id}/request-reschedule`, data);
+  return response.data;
+}
+
+export async function respondReschedule(
+  id: number,
+  accept: boolean,
+): Promise<Appointment> {
+  const response = await apiClient.patch<Appointment>(`/appointments/${id}/respond-reschedule`, { accept });
+  return response.data;
 }
 
 export async function getDoctors(): Promise<Doctor[]> {

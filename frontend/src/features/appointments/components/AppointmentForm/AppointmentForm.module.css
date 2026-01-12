@@ -110,3 +110,19 @@
   font-weight: 600;
   color: var(--color-primary);
 }
+
+.checkboxLabel {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: flex-start;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.checkboxLabel input {
+  margin-top: 4px;
+}
+
+.checkboxText {
+  color: var(--color-text);
+}

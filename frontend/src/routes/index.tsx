@@ -1,6 +1,6 @@
 import React from 'react';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
-import { login, appointments, legal, profile, patients } from '@/features';
+import { login, appointments, legal, profile, patients, consultations } from '@/features';
 import { Layout } from '@/components';
 import { getAuthToken } from '@/store/auth/authApi';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -57,6 +57,10 @@ const router = createBrowserRouter([
     ),
     children: [
       { path: '/appointments', element: <appointments.pages.Appointments.Appointments /> },
+      {
+        path: '/consultations/:appointmentId',
+        element: <consultations.pages.ConsultationSession />,
+      },
       { path: '/patients', element: <patients.pages.MyPatients /> },
       { path: '/available-patients', element: <patients.pages.AllPatients /> },
       { path: '/my-doctor', element: <patients.pages.MyDoctor /> },
