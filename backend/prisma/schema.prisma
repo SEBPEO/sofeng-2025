@@ -26,15 +26,23 @@ model User{
 }
 
 model Chat{
-    message_id      Int     @id 
+    message_id      Int         @id @default(autoincrement())
     sender_id       String
     receiver_id     String
-    content         String
-    sent_at         DateTime
+    content         String      @db.Text
+    sent_at         DateTime    @default(now())
     read_at         DateTime?
+    file_path       String?     @db.VarChar(500)
+    file_name       String?     @db.VarChar(255)
+    file_type       String?     @db.VarChar(100)
+    file_size       Int?
 
-    sender      User    @relation("SentMessages", fields: [sender_id], references: [user_id] )
-    receiver    User    @relation("ReceivedMessages", fields: [receiver_id], references: [user_id]) 
+    sender      User    @relation("SentMessages", fields: [sender_id], references: [user_id], onDelete: Cascade)
+    receiver    User    @relation("ReceivedMessages", fields: [receiver_id], references: [user_id], onDelete: Cascade)
+
+    @@index([sender_id, receiver_id])
+    @@index([receiver_id])
+    @@index([sent_at])
 }
 
 model DoctorProfile{
