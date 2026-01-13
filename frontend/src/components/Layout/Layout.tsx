@@ -31,6 +31,7 @@ export const Layout = () => {
     { path: '/appointments', icon: '📅', label: 'Appointments' },
     { path: '/patients', icon: '❤️', label: 'My Patients' },
     { path: '/available-patients', icon: '👥', label: 'Available Patients' },
+    { path: '/messages', icon: '💬', label: 'Messages' },
     { path: '/profile', icon: '⚙️', label: 'Profile' },
     { path: '/legal', icon: '📄', label: 'Legal' },
   ];
@@ -38,6 +39,7 @@ export const Layout = () => {
   const getPatientNavItems = () => [
     { path: '/appointments', icon: '📅', label: 'Appointments' },
     { path: '/my-doctor', icon: '👨‍⚕️', label: 'My Doctor' },
+    { path: '/messages', icon: '💬', label: 'Messages' },
     { path: '/profile', icon: '⚙️', label: 'Profile' },
     { path: '/legal', icon: '📄', label: 'Legal' },
   ];
