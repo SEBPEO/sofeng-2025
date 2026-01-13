@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Logo } from '@/components/icons';
 import { MedicalBackground } from '@/components/MedicalBackground';
@@ -13,6 +13,7 @@ export const Layout = () => {
   const dispatch = useAppDispatch();
   const currentUser = useAppSelector((state) => state.users.current);
   const userRole = currentUser?.role;
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Load user data on mount
   useEffect(() => {
@@ -21,6 +22,7 @@ export const Layout = () => {
 
   const handleLogout = () => {
     clearAuthToken();
+    setIsSidebarOpen(false);
     navigate('/', { replace: true });
   };
 
@@ -44,7 +46,22 @@ export const Layout = () => {
 
   return (
     <div className={styles.app}>
-      <aside className={styles.sidebar}>
+      {/* Mobile header */}
+      <header className={styles.mobileHeader}>
+        <button
+          className={styles.menuButton}
+          aria-label="Open menu"
+          onClick={() => setIsSidebarOpen(true)}
+        >
+          ☰
+        </button>
+        <div className={styles.mobileBrand}>
+          <Logo />
+          <span className={styles.brandText}>DocNotes</span>
+        </div>
+      </header>
+
+      <aside className={`${styles.sidebar} ${isSidebarOpen ? styles.sidebarOpen : ''}`}>
         <div className={styles.brand}>
           <Logo />
           <span className={styles.brandText}>DocNotes</span>
@@ -55,7 +72,10 @@ export const Layout = () => {
             <button
               key={item.path}
               className={`${styles.navItem} ${location.pathname === item.path ? styles.active : ''}`}
-              onClick={() => navigate(item.path)}
+              onClick={() => {
+                navigate(item.path);
+                setIsSidebarOpen(false);
+              }}
               aria-label={item.label}
             >
               <span className={styles.navIcon}>{item.icon}</span>
@@ -70,6 +90,12 @@ export const Layout = () => {
           </button>
         </div>
       </aside>
+
+      {/* Backdrop for mobile drawer */}
+      <div
+        className={`${styles.backdrop} ${isSidebarOpen ? styles.backdropVisible : ''}`}
+        onClick={() => setIsSidebarOpen(false)}
+      />
 
       <main className={styles.main}>
         <MedicalBackground variant="light" />
