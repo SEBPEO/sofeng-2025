@@ -143,7 +143,17 @@ export function Messages() {
   return (
     <div className={styles.messagesContainer}>
       <div className={styles.conversationsList}>
-        {conversations.map((conversation) => (
+        {conversations.length === 0 ? (
+          <div style={{ padding: '24px', textAlign: 'center', color: '#666' }}>
+            <p>No conversations yet</p>
+            <p style={{ fontSize: '13px', marginTop: '8px' }}>
+              {user?.role === 'doctor' 
+                ? 'Go to "My Patients" to see patients you can message'
+                : 'Go to "My Doctor" to add a doctor you can message'}
+            </p>
+          </div>
+        ) : (
+          conversations.map((conversation) => (
           <div
             key={conversation.user_id}
             className={`${styles.conversationItem} ${
@@ -183,7 +193,8 @@ export function Messages() {
               </>
             )}
           </div>
-        ))}
+          ))
+        )}
       </div>
 
       <div className={styles.chatArea}>
