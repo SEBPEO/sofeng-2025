@@ -29,6 +29,9 @@ type ProfileFormData = {
   conditions?: string;
   medications?: string;
   allergy?: string;
+  // Consents (stored client-side)
+  consent_data_storage: boolean;
+  consent_share_notes: boolean;
 };
 
 export const Profile = () => {
@@ -38,6 +41,7 @@ export const Profile = () => {
   const [error, setError] = useState<string | null>(null);
   const [initialRole, setInitialRole] = useState<'doctor' | 'patient' | null>(null);
   const [doctorId, setDoctorId] = useState<number | null>(null);
+  const [showCongrats, setShowCongrats] = useState(false);
 
   const {
     register,
@@ -45,11 +49,32 @@ export const Profile = () => {
     watch,
     setValue,
     formState: { errors },
-  } = useForm<ProfileFormData>();
+  } = useForm<ProfileFormData>({
+    mode: 'onChange',
+    defaultValues: {
+      consent_data_storage: false,
+      consent_share_notes: false,
+    },
+  });
 
   const selectedRole = watch('role');
   // Role is locked if user already has a profile (doctor_profile or patient_profile)
   const isRoleLocked = initialRole !== null;
+
+  // Onboarding completion checks
+  const roleChosen = !!selectedRole;
+  const doctorReq = selectedRole === 'doctor' ? !!watch('specialization') && !!watch('clinic_address') : true;
+  const patientReq = selectedRole === 'patient' ? !!watch('date_of_birth') && !!watch('emergency_contact') : true;
+  const summaryReq = !!(watch('conditions') || watch('medications') || watch('allergy'));
+  const consentReq = watch('consent_data_storage') && watch('consent_share_notes');
+  const steps = [
+    { label: 'Choose your role', done: roleChosen },
+    { label: selectedRole === 'doctor' ? 'Add specialization & clinic address' : 'Add date of birth & emergency contact', done: selectedRole === 'doctor' ? doctorReq : patientReq },
+    { label: 'Add a quick medical summary (conditions/meds/allergies)', done: summaryReq },
+    { label: 'Confirm consent preferences', done: consentReq },
+  ];
+  const onboardingComplete = steps.every((s) => s.done);
+  const remainingCount = steps.filter((s) => !s.done).length;
 
   useEffect(() => {
     loadUserData();
@@ -93,6 +118,14 @@ export const Profile = () => {
         setValue('medications', user.patient_profile.medications || undefined);
         setValue('allergy', user.patient_profile.allergy || undefined);
       }
+
+      // Prefill consents from localStorage
+      const storedConsents = localStorage.getItem('profile_consents');
+      if (storedConsents) {
+        const parsed = JSON.parse(storedConsents);
+        setValue('consent_data_storage', !!parsed.consent_data_storage);
+        setValue('consent_share_notes', !!parsed.consent_share_notes);
+      }
     } catch (err) {
       setError('Failed to load user data');
       console.error(err);
@@ -133,6 +166,19 @@ export const Profile = () => {
       }
 
       await updateUserProfile(payload);
+
+      // Store consents locally
+      localStorage.setItem(
+        'profile_consents',
+        JSON.stringify({
+          consent_data_storage: data.consent_data_storage,
+          consent_share_notes: data.consent_share_notes,
+        }),
+      );
+
+      if (onboardingComplete) {
+        setShowCongrats(true);
+      }
       navigate('/dashboard', { replace: true });
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to update profile');
@@ -154,10 +200,26 @@ export const Profile = () => {
     <div className={styles.container}>
       <div className={styles.card}>
         <div className={styles.header}>
+          <div className={`${styles.badge} ${onboardingComplete ? styles.badgeComplete : ''}`}>
+            {onboardingComplete
+              ? 'Onboarding Complete 🎉'
+              : `Finish setup (${remainingCount} step${remainingCount === 1 ? '' : 's'} left)`}
+          </div>
           <h1 className={styles.title}>Complete Your Profile</h1>
           <p className={styles.subtitle}>
-            Welcome! Please complete your profile to get started.
+            A few quick steps to get you ready.
           </p>
+        </div>
+
+        <div className={styles.onboardingPanel}>
+          {steps.map((step, idx) => (
+            <div key={idx} className={styles.stepItem}>
+              <span className={`${styles.stepDot} ${step.done ? styles.stepDotDone : ''}`}>
+                {step.done ? '✓' : idx + 1}
+              </span>
+              <span className={step.done ? styles.stepDone : ''}>{step.label}</span>
+            </div>
+          ))}
         </div>
 
         {error && <div className={styles.errorBanner}>{error}</div>}
@@ -188,10 +250,28 @@ export const Profile = () => {
             isPatient={selectedRole === 'patient'}
           />
 
+          <section className={styles.consentSection}>
+            <h2 className={styles.sectionTitle}>Consent & Data Preferences</h2>
+            <label className={styles.checkboxRow}>
+              <input type="checkbox" {...register('consent_data_storage', { required: true })} />
+              <div>
+                <div className={styles.checkboxLabel}>Store my data securely</div>
+                <div className={styles.checkboxText}>Allows us to keep your profile and medical summary accessible for care.</div>
+              </div>
+            </label>
+            <label className={styles.checkboxRow}>
+              <input type="checkbox" {...register('consent_share_notes', { required: true })} />
+              <div>
+                <div className={styles.checkboxLabel}>Share anonymized notes with my care team</div>
+                <div className={styles.checkboxText}>Enables collaboration between assigned doctors for better outcomes.</div>
+              </div>
+            </label>
+          </section>
+
           {/* Submit Button */}
           <div className={styles.actions}>
             <Button type="submit" disabled={submitting || !selectedRole}>
-              {submitting ? 'Saving...' : 'Complete Profile'}
+              {submitting ? 'Saving...' : onboardingComplete ? 'Save & Continue' : 'Save progress'}
             </Button>
           </div>
         </form>
@@ -199,6 +279,17 @@ export const Profile = () => {
         {/* Availability Section for Doctors */}
         {doctorId && <AvailabilitySection doctorId={doctorId} />}
       </div>
+
+      {showCongrats && (
+        <div className={styles.modalOverlay} onClick={() => setShowCongrats(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalBadge}>Complete</div>
+            <h3>Nice work! 🎉</h3>
+            <p>Your onboarding is complete. You can always update details here.</p>
+            <Button onClick={() => setShowCongrats(false)}>Close</Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -25,7 +25,25 @@
 
 .header {
   margin-bottom: var(--space-xl, 2rem);
-  text-align: center;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(242, 183, 5, 0.12);
+  color: #b45309;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: 1px solid rgba(242, 183, 5, 0.3);
+}
+
+.badgeComplete {
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
+  border-color: rgba(34, 197, 94, 0.3);
 }
 
 .title {
@@ -43,6 +61,47 @@
   font-size: 1rem;
   color: #6b7280;
   margin: 0;
+}
+
+.onboardingPanel {
+  margin: 1rem 0 1.5rem;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px dashed rgba(15, 23, 42, 0.1);
+  background: linear-gradient(120deg, rgba(255, 209, 102, 0.12), rgba(23, 181, 163, 0.08));
+  display: grid;
+  gap: 0.6rem;
+}
+
+.stepItem {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--color-text, #0f172a);
+  font-weight: 600;
+}
+
+.stepDot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid rgba(15, 23, 42, 0.2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: rgba(15, 23, 42, 0.7);
+  background: #fff;
+}
+
+.stepDotDone {
+  border-color: rgba(34, 197, 94, 0.5);
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
+}
+
+.stepDone {
+  color: #15803d;
 }
 
 .loadingState {
@@ -68,6 +127,45 @@
   gap: var(--space-xl, 2rem);
 }
 
+.consentSection {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(15, 23, 42, 0.02);
+}
+
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem;
+  color: var(--color-text, #0f172a);
+}
+
+.checkboxRow {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.6rem 0;
+}
+
+.checkboxRow input[type='checkbox'] {
+  margin-top: 2px;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primary, #17b5a3);
+}
+
+.checkboxLabel {
+  font-weight: 600;
+  color: var(--color-text, #0f172a);
+}
+
+.checkboxText {
+  color: var(--color-text-light, rgba(15, 23, 42, 0.7));
+  font-size: 0.95rem;
+}
+
 .actions {
   display: flex;
   justify-content: flex-end;
@@ -78,6 +176,36 @@
   min-width: 200px;
   padding: var(--space-md, 1rem) var(--space-lg, 1.5rem);
   font-size: 1.125rem;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: min(420px, 90vw);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+  text-align: center;
+}
+
+.modalBadge {
+  display: inline-flex;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  font-weight: 700;
+  margin-bottom: 0.75rem;
 }
 
 /* Responsive adjustments */
