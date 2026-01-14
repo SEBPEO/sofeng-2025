@@ -70,7 +70,11 @@ export const Profile = () => {
   const steps = [
     { label: 'Choose your role', done: roleChosen },
     { label: selectedRole === 'doctor' ? 'Add specialization & clinic address' : 'Add date of birth & emergency contact', done: selectedRole === 'doctor' ? doctorReq : patientReq },
-    { label: 'Add a quick medical summary (conditions/meds/allergies)', done: summaryReq },
+    // Only show medical summary step for patients
+    ...(selectedRole === 'patient' ? [{
+      label: 'Add a quick medical summary (conditions/meds/allergies)',
+      done: summaryReq
+    }] : []),
     { label: 'Confirm consent preferences', done: consentReq },
   ];
   const onboardingComplete = steps.every((s) => s.done);
