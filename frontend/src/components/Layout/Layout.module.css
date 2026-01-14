@@ -54,6 +54,16 @@
   font-size: 20px;
 }
 
+.desktopBellWrapper {
+  margin-left: auto;
+}
+
+.mobileActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 /* Navigation */
 .nav {
   display: flex;
