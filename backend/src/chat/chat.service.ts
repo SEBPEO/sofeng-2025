@@ -2,6 +2,9 @@ import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/commo
 import { PrismaService } from '../prisma/prisma.service';
 import { MessageResponseDto } from './dto/message-response.dto';
 import { ConversationDto } from './dto/conversation.dto';
+import { NotificationsService } from '../notifications/notifications.service';
+import { EmailService } from '../notifications/email.service';
+import { NotificationPreferencesService } from '../notification-preferences/notification-preferences.service';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -9,7 +12,12 @@ import * as path from 'path';
 export class ChatService {
   private readonly uploadDir = 'uploads/chat-attachments';
 
-  constructor(private prisma: PrismaService) {
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+    private emailService: EmailService,
+    private notificationPreferencesService: NotificationPreferencesService,
+  ) {
     if (!fs.existsSync(this.uploadDir)) {
       fs.mkdirSync(this.uploadDir, { recursive: true });
     }
@@ -180,10 +188,14 @@ export class ChatService {
             first_name: true,
             last_name: true,
             role: true,
+            email: true,
           },
         },
       },
     });
+
+    // Send notifications
+    await this.sendMessageNotifications(message);
 
     return message;
   }
@@ -226,10 +238,14 @@ export class ChatService {
             first_name: true,
             last_name: true,
             role: true,
+            email: true,
           },
         },
       },
     });
+
+    // Send notifications
+    await this.sendMessageNotifications(message);
 
     return message;
   }
@@ -289,5 +305,50 @@ export class ChatService {
     if (!relationship) {
       throw new ForbiddenException('You can only message your assigned doctors or patients');
     }
+  }
+
+  private async sendMessageNotifications(message: any) {
+    const senderName = `${message.sender.first_name} ${message.sender.last_name}`;
+    const receiverId = message.receiver_id;
+    const receiverEmail = message.receiver.email;
+
+    // Get receiver's notification preferences
+    const preferences =
+      await this.notificationPreferencesService.getPreferences(receiverId);
+
+    // Create in-app notification if enabled
+    if (preferences.in_app_enabled && preferences.in_app_messages) {
+      await this.notificationsService.createNotification(
+        receiverId,
+        'MESSAGE',
+        `New message from ${senderName}`,
+        message.content.substring(0, 100),
+        message.message_id.toString(),
+      );
+    }
+
+    // Count unread messages from this sender
+    const unreadCount = await this.prisma.chat.count({
+      where: {
+        sender_id: message.sender_id,
+        receiver_id: receiverId,
+        read_at: null,
+      },
+    });
+
+    // Send email notification if enabled
+    if (preferences.email_enabled && preferences.email_unread_messages) {
+      await this.emailService.sendUnreadMessageNotification(
+        receiverId,
+        receiverEmail,
+        senderName,
+        unreadCount,
+      );
+    }
+
+    // TODO: Send push notification if enabled
+    // if (preferences.push_enabled && preferences.push_messages) {
+    //   await this.pushNotificationService.sendMessageNotification(...);
+    // }
   }
 }

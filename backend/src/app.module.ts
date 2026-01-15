@@ -10,6 +10,8 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AvailabilityModule } from './availability/availability.module';
 import { ConsultationsModule } from './consultations/consultations.module';
 import { ChatModule } from './chat/chat.module';
+import { NotificationPreferencesModule } from './notification-preferences/notification-preferences.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { ChatModule } from './chat/chat.module';
     AvailabilityModule,
     ConsultationsModule,
     ChatModule,
+    NotificationPreferencesModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

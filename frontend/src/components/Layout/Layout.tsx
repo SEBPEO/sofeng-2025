@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Logo } from '@/components/icons';
 import { MedicalBackground } from '@/components/MedicalBackground';
+import { NotificationBell } from '@/features/notifications';
 import { clearAuthToken } from '@/store/auth/authApi';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { getUserByJwtThunk } from '@/store/user/userSlice';
@@ -33,6 +34,7 @@ export const Layout = () => {
     { path: '/available-patients', icon: '👥', label: 'Available Patients' },
     { path: '/messages', icon: '💬', label: 'Messages' },
     { path: '/profile', icon: '⚙️', label: 'Profile' },
+    { path: '/notifications', icon: '🔔', label: 'Notifications' },
     { path: '/legal', icon: '📄', label: 'Legal' },
   ];
 
@@ -41,6 +43,7 @@ export const Layout = () => {
     { path: '/my-doctor', icon: '👨‍⚕️', label: 'My Doctor' },
     { path: '/messages', icon: '💬', label: 'Messages' },
     { path: '/profile', icon: '⚙️', label: 'Profile' },
+    { path: '/notifications', icon: '🔔', label: 'Notifications' },
     { path: '/legal', icon: '📄', label: 'Legal' },
   ];
 
@@ -59,6 +62,9 @@ export const Layout = () => {
         </button>
         <div className={styles.mobileBrand}>
           <Logo />
+        <div className={styles.mobileActions}>
+          <NotificationBell />
+        </div>
           <span className={styles.brandText}>DocNotes</span>
         </div>
       </header>
@@ -67,6 +73,9 @@ export const Layout = () => {
         <div className={styles.brand}>
           <Logo />
           <span className={styles.brandText}>DocNotes</span>
+          <div className={styles.desktopBellWrapper}>
+            <NotificationBell />
+          </div>
         </div>
 
         <nav className={styles.nav}>
