@@ -101,7 +101,7 @@ export const ConsultationSession: React.FC = () => {
   const appt = consultation.appointment;
   const patientName = `${appt.patient.user.first_name} ${appt.patient.user.last_name}`;
   const recordingCount = consultation.recordings?.length || 0;
-  const maxRecordings = 5;
+  const maxRecordings = 1;
   const hasReachedLimit = recordingCount >= maxRecordings;
 
   return (
@@ -138,13 +138,13 @@ export const ConsultationSession: React.FC = () => {
           <div className={styles.sectionHeader}>
             <h2>Recording</h2>
             {recordingCount > 0 && (
-              <span className={styles.badge}>{recordingCount} / {maxRecordings} recordings</span>
+              <span className={styles.badge}>{recordingCount} / {maxRecordings} {maxRecordings === 1 ? 'recording' : 'recordings'}</span>
             )}
           </div>
           {isDoctor ? (
             <>
               {hasReachedLimit ? (
-                <div className={styles.note}>Recording limit reached ({maxRecordings} recordings maximum).</div>
+                <div className={styles.note}>Recording limit reached ({maxRecordings} {maxRecordings === 1 ? 'recording' : 'recordings'} maximum).</div>
               ) : (
                 <AudioRecorder onSave={handleUpload} />
               )}
