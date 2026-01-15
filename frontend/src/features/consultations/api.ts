@@ -54,3 +54,28 @@ export async function uploadRecording(
 
   return response.data;
 }
+
+export interface ConsultationNotes {
+  transcript: string;
+  summary: string;
+}
+
+export async function generateConsultationNotes(
+  consultationId: number,
+): Promise<ConsultationNotes> {
+  const response = await apiClient.post<ConsultationNotes>(
+    `/consultations/${consultationId}/generate-notes`,
+  );
+  return response.data;
+}
+
+export async function updateConsultationNotes(
+  consultationId: number,
+  notes: Partial<ConsultationNotes>,
+): Promise<ConsultationNotes> {
+  const response = await apiClient.put<ConsultationNotes>(
+    `/consultations/${consultationId}/notes`,
+    notes,
+  );
+  return response.data;
+}

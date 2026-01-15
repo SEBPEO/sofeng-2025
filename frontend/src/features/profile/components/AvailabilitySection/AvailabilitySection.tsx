@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Button, Input } from '@/components';
+import { Button } from '@/components';
 import apiClient from '@/store/apiClient';
 import styles from './AvailabilitySection.module.css';
 

@@ -6,7 +6,10 @@ import {
   startConsultation,
   uploadRecording,
   getConsultationByAppointment,
+  generateConsultationNotes,
+  updateConsultationNotes,
   type Consultation,
+  type ConsultationNotes,
 } from '../api';
 import { AudioRecorder } from '../components/AudioRecorder';
 import styles from './ConsultationSession.module.css';
@@ -21,6 +24,13 @@ export const ConsultationSession: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState<string | null>(null);
+  const [showNotesModal, setShowNotesModal] = useState(false);
+  const [notes, setNotes] = useState<ConsultationNotes | null>(null);
+  const [editableNotes, setEditableNotes] = useState<ConsultationNotes | null>(null);
+  const [loadingNotes, setLoadingNotes] = useState(false);
+  const [savingNotes, setSavingNotes] = useState(false);
+  const [notesError, setNotesError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const isDoctor = currentUser?.role === 'doctor';
 
   useEffect(() => {
@@ -91,6 +101,85 @@ export const ConsultationSession: React.FC = () => {
     } catch (err: any) {
       console.error(err);
       setUploadMessage(err?.response?.data?.message || 'Download failed');
+    }
+  };
+
+  const handleShowNotes = async () => {
+    if (!consultation) return;
+
+    // If notes already exist in consultation, show them
+    if (consultation.AI_summary) {
+      const existingNotes = {
+        transcript: consultation.transcript || '',
+        summary: consultation.AI_summary,
+      };
+      setNotes(existingNotes);
+      setEditableNotes(existingNotes);
+      setShowNotesModal(true);
+      return;
+    }
+
+    // Otherwise, generate them
+    try {
+      setLoadingNotes(true);
+      setNotesError(null);
+      const generatedNotes = await generateConsultationNotes(consultation.consultation_id);
+      setNotes(generatedNotes);
+      setEditableNotes(generatedNotes);
+      setShowNotesModal(true);
+      
+      // Update consultation state with new notes
+      setConsultation({
+        ...consultation,
+        transcript: generatedNotes.transcript,
+        AI_summary: generatedNotes.summary,
+      });
+    } catch (err: any) {
+      console.error('Failed to generate notes:', err);
+      setNotesError(err?.response?.data?.message || 'Failed to generate notes');
+    } finally {
+      setLoadingNotes(false);
+    }
+  };
+
+  const handleSaveNotes = async () => {
+    if (!consultation || !editableNotes) return;
+
+    try {
+      setSavingNotes(true);
+      setNotesError(null);
+      setSaveSuccess(false);
+
+      const savedNotes = await updateConsultationNotes(consultation.consultation_id, editableNotes);
+      
+      setNotes(savedNotes);
+      setEditableNotes(savedNotes);
+      setSaveSuccess(true);
+
+      // Update consultation state
+      setConsultation({
+        ...consultation,
+        transcript: savedNotes.transcript,
+        AI_summary: savedNotes.summary,
+      });
+
+      // Hide success message after 3 seconds
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (err: any) {
+      console.error('Failed to save notes:', err);
+      setNotesError(err?.response?.data?.message || 'Failed to save notes');
+    } finally {
+      setSavingNotes(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowNotesModal(false);
+    setNotesError(null);
+    setSaveSuccess(false);
+    // Reset editable notes to original when closing
+    if (notes) {
+      setEditableNotes(notes);
     }
   };
 
@@ -172,13 +261,24 @@ export const ConsultationSession: React.FC = () => {
                         timeStyle: 'short',
                       })}
                     </div>
-                    <button
-                      className={styles.downloadButton}
-                      type="button"
-                      onClick={() => handleDownload(rec.consultation_recording_id, fileName)}
-                    >
-                      Download audio
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        className={styles.downloadButton}
+                        type="button"
+                        onClick={() => handleDownload(rec.consultation_recording_id, fileName)}
+                      >
+                        Download audio
+                      </button>
+                      <button
+                        className={styles.downloadButton}
+                        type="button"
+                        onClick={handleShowNotes}
+                        disabled={loadingNotes}
+                        style={{ opacity: loadingNotes ? 0.6 : 1 }}
+                      >
+                        {loadingNotes ? 'Generating...' : 'Show notes'}
+                      </button>
+                    </div>
                   </div>
                 );
               })}
@@ -188,6 +288,57 @@ export const ConsultationSession: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Notes Modal */}
+      {showNotesModal && (
+        <div className={styles.modalOverlay} onClick={handleCloseModal}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2>Consultation Notes</h2>
+              <button
+                className={styles.closeButton}
+                onClick={handleCloseModal}
+                type="button"
+              >
+                ×
+              </button>
+            </div>
+            {notesError && <div className={styles.error}>{notesError}</div>}
+            {saveSuccess && <div className={styles.success}>Changes saved successfully!</div>}
+            {editableNotes && (
+              <div className={styles.notesContent}>
+                <div className={styles.notesSection}>
+                  <h3>AI Summary</h3>
+                  {isDoctor ? (
+                    <textarea
+                      className={styles.editableText}
+                      value={editableNotes.summary}
+                      onChange={(e) =>
+                        setEditableNotes({ ...editableNotes, summary: e.target.value })
+                      }
+                      placeholder="Enter consultation summary..."
+                      rows={20}
+                    />
+                  ) : (
+                    <div className={styles.notesText}>{editableNotes.summary}</div>
+                  )}
+                </div>
+                {isDoctor && (
+                  <div className={styles.notesActions}>
+                    <Button
+                      variant="primary"
+                      onClick={handleSaveNotes}
+                      disabled={savingNotes || !editableNotes}
+                    >
+                      {savingNotes ? 'Saving...' : 'Save Changes'}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

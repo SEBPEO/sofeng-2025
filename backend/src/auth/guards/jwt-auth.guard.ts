@@ -7,7 +7,7 @@ import { catchError } from 'rxjs/operators';
 export class JwtAuthGuard extends AuthGuard('jwt') {
   canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
     const result = super.canActivate(context);
-    
+
     if (result instanceof Observable) {
       return result.pipe(
         catchError(() => {
@@ -15,13 +15,13 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         }),
       );
     }
-    
+
     if (result instanceof Promise) {
       return result.catch(() => {
         throw new UnauthorizedException('Invalid or missing token');
       });
     }
-    
+
     return result;
   }
 

@@ -3,11 +3,13 @@ import { PrismaClient } from '@prisma/client';
 import * as fs from 'fs';
 import * as path from 'path';
 import type { File as MulterFile } from 'multer';
+import { AiService } from './ai.service';
 
 const prisma = new PrismaClient();
 
 @Injectable()
 export class ConsultationsService {
+  constructor(private readonly aiService: AiService) {}
   private ensureUploadsDir(dir: string) {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
@@ -223,5 +225,131 @@ export class ConsultationsService {
     }
 
     return { fullPath, filename: path.basename(recording.file_path) };
+  }
+
+  async generateNotes(userId: string, consultationId: number): Promise<{ transcript: string; summary: string }> {
+    const user = await prisma.user.findUnique({
+      where: { user_id: userId },
+      include: { doctor_profile: true, patient_profile: true },
+    });
+
+    if (!user) {
+      throw new ForbiddenException('User not found');
+    }
+
+    const consultation = await prisma.consultation.findUnique({
+      where: { consultation_id: consultationId },
+      include: {
+        appointment: {
+          include: {
+            patient: { include: { user: true } },
+            doctor: { include: { user: true } },
+          },
+        },
+        recordings: { orderBy: { created_at: 'desc' }, take: 1 },
+      },
+    });
+
+    if (!consultation) {
+      throw new NotFoundException('Consultation not found');
+    }
+
+    // Check access
+    const isDoctorOwner = user.doctor_profile?.doctor_id === consultation.appointment.doctor_id;
+    const isPatientOwner = user.patient_profile?.patient_id === consultation.appointment.patient_id;
+
+    if (!isDoctorOwner && !isPatientOwner) {
+      throw new ForbiddenException('You do not have access to this consultation');
+    }
+
+    // Check if summary already exists
+    if (consultation.AI_summary) {
+      // Return existing summary and transcript
+      return {
+        transcript: consultation.transcript || '',
+        summary: consultation.AI_summary,
+      };
+    }
+
+    // Check if there's a recording
+    if (!consultation.recordings || consultation.recordings.length === 0) {
+      throw new BadRequestException('No recording found for this consultation');
+    }
+
+    const recording = consultation.recordings[0];
+    const recordingPath = path.join(process.cwd(), recording.file_path);
+
+    if (!fs.existsSync(recordingPath)) {
+      throw new NotFoundException('Recording file not found');
+    }
+
+    const patientName = `${consultation.appointment.patient.user.first_name} ${consultation.appointment.patient.user.last_name}`;
+    const doctorName = `${consultation.appointment.doctor.user.first_name} ${consultation.appointment.doctor.user.last_name}`;
+
+    // Process recording: transcribe and generate summary
+    const { transcript, summary } = await this.aiService.processRecording(
+      recording.file_path,
+      patientName,
+      doctorName,
+    );
+
+    // Save transcript and summary to database
+    await prisma.consultation.update({
+      where: { consultation_id: consultationId },
+      data: {
+        transcript,
+        AI_summary: summary,
+      },
+    });
+
+    return { transcript, summary };
+  }
+
+  async updateNotes(
+    userId: string,
+    consultationId: number,
+    updateData: { summary?: string; transcript?: string },
+  ): Promise<{ transcript: string; summary: string }> {
+    const user = await prisma.user.findUnique({
+      where: { user_id: userId },
+      include: { doctor_profile: true },
+    });
+
+    if (!user) {
+      throw new ForbiddenException('User not found');
+    }
+
+    // Only doctors can update notes
+    if (!user.doctor_profile) {
+      throw new ForbiddenException('Only doctors can update consultation notes');
+    }
+
+    const consultation = await prisma.consultation.findUnique({
+      where: { consultation_id: consultationId },
+      include: { appointment: true },
+    });
+
+    if (!consultation) {
+      throw new NotFoundException('Consultation not found');
+    }
+
+    // Check if doctor owns this consultation
+    if (consultation.appointment.doctor_id !== user.doctor_profile.doctor_id) {
+      throw new ForbiddenException('You do not have access to update this consultation');
+    }
+
+    // Update notes
+    const updatedConsultation = await prisma.consultation.update({
+      where: { consultation_id: consultationId },
+      data: {
+        ...(updateData.summary !== undefined && { AI_summary: updateData.summary }),
+        ...(updateData.transcript !== undefined && { transcript: updateData.transcript }),
+      },
+    });
+
+    return {
+      transcript: updatedConsultation.transcript || '',
+      summary: updatedConsultation.AI_summary || '',
+    };
   }
 }
