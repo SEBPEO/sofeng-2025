@@ -10,6 +10,8 @@ import {
   Req,
   UseGuards,
   ParseIntPipe,
+  NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AvailabilityService } from './availability.service';
@@ -24,7 +26,7 @@ const prisma = new PrismaClient();
 @Controller('availability')
 @UseGuards(AuthGuard('jwt'))
 export class AvailabilityController {
-  constructor(private readonly availabilityService: AvailabilityService) {}
+  constructor(private readonly availabilityService: AvailabilityService) { }
 
   @Post()
   async create(@Req() req, @Body() createAvailabilityDto: CreateAvailabilityDto) {
@@ -35,7 +37,7 @@ export class AvailabilityController {
     });
 
     if (!user || !user.doctor_profile) {
-      throw new Error('Doctor profile not found');
+      throw new NotFoundException('Doctor profile not found');
     }
 
     return this.availabilityService.createAvailability(
@@ -53,7 +55,7 @@ export class AvailabilityController {
     });
 
     if (!user || !user.doctor_profile) {
-      throw new Error('Doctor profile not found');
+      throw new NotFoundException('Doctor profile not found');
     }
 
     return this.availabilityService.getDoctorAvailability(user.doctor_profile.doctor_id);
@@ -72,13 +74,13 @@ export class AvailabilityController {
     @Query('date') date: string,
   ): Promise<TimeSlotDto[]> {
     if (!date) {
-      throw new Error('Date query parameter is required (format: YYYY-MM-DD)');
+      throw new BadRequestException('Date query parameter is required (format: YYYY-MM-DD)');
     }
 
     // Validate date format
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(date)) {
-      throw new Error('Date must be in YYYY-MM-DD format');
+      throw new BadRequestException('Date must be in YYYY-MM-DD format');
     }
 
     return this.availabilityService.getAvailableSlots(doctorId, date);
@@ -97,7 +99,7 @@ export class AvailabilityController {
     });
 
     if (!user || !user.doctor_profile) {
-      throw new Error('Doctor profile not found');
+      throw new NotFoundException('Doctor profile not found');
     }
 
     return this.availabilityService.updateAvailability(
@@ -116,7 +118,7 @@ export class AvailabilityController {
     });
 
     if (!user || !user.doctor_profile) {
-      throw new Error('Doctor profile not found');
+      throw new NotFoundException('Doctor profile not found');
     }
 
     await this.availabilityService.deleteAvailability(id, user.doctor_profile.doctor_id);

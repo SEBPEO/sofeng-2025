@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Button, Input } from '@/components';
+import { Button } from '@/components';
+import apiClient from '@/store/apiClient';
 import styles from './AvailabilitySection.module.css';
 
 const DAYS_OF_WEEK = [
@@ -44,17 +45,9 @@ export const AvailabilitySection = ({ doctorId }: AvailabilitySectionProps) => {
 
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/availability/me`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
+      setError(null);
 
-      if (!response.ok) {
-        throw new Error('Failed to load availability');
-      }
-
-      const data: Availability[] = await response.json();
+      const { data } = await apiClient.get<Availability[]>('/availability/me');
       const availabilityMap: Record<number, Availability> = {};
 
       // Initialize all days
@@ -108,48 +101,22 @@ export const AvailabilitySection = ({ doctorId }: AvailabilitySectionProps) => {
 
         if (av.availability_id) {
           // Update existing
-          const response = await fetch(
-            `${import.meta.env.VITE_API_URL}/availability/${av.availability_id}`,
-            {
-              method: 'PATCH',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${localStorage.getItem('token')}`,
-              },
-              body: JSON.stringify({
-                start_time: av.start_time,
-                end_time: av.end_time,
-                duration_minutes: av.duration_minutes,
-                is_available: av.is_available,
-              }),
-            },
-          );
-
-          if (!response.ok) {
-            throw new Error(`Failed to update ${day.label}`);
-          }
+          await apiClient.patch(`/availability/${av.availability_id}`, {
+            start_time: av.start_time,
+            end_time: av.end_time,
+            duration_minutes: av.duration_minutes,
+            is_available: av.is_available,
+          });
         } else if (av.is_available) {
           // Create new
-          const response = await fetch(`${import.meta.env.VITE_API_URL}/availability`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${localStorage.getItem('token')}`,
-            },
-            body: JSON.stringify({
-              day_of_week: av.day_of_week,
-              start_time: av.start_time,
-              end_time: av.end_time,
-              duration_minutes: av.duration_minutes,
-              is_available: av.is_available,
-            }),
+          const { data: created } = await apiClient.post<Availability>('/availability', {
+            day_of_week: av.day_of_week,
+            start_time: av.start_time,
+            end_time: av.end_time,
+            duration_minutes: av.duration_minutes,
+            is_available: av.is_available,
           });
 
-          if (!response.ok) {
-            throw new Error(`Failed to create ${day.label}`);
-          }
-
-          const created = await response.json();
           setAvailabilities((prev) => ({
             ...prev,
             [day.value]: created,
