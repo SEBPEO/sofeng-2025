@@ -12,6 +12,7 @@ import {
   type ConsultationNotes,
 } from '../api';
 import { AudioRecorder } from '../components/AudioRecorder';
+import { ActionItems } from '../components/ActionItems';
 import styles from './ConsultationSession.module.css';
 import apiClient from '@/store/apiClient';
 
@@ -31,6 +32,7 @@ export const ConsultationSession: React.FC = () => {
   const [savingNotes, setSavingNotes] = useState(false);
   const [notesError, setNotesError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [showActionItems, setShowActionItems] = useState(true); // Показати по дефолту
   const isDoctor = currentUser?.role === 'doctor';
 
   useEffect(() => {
@@ -127,7 +129,7 @@ export const ConsultationSession: React.FC = () => {
       setNotes(generatedNotes);
       setEditableNotes(generatedNotes);
       setShowNotesModal(true);
-      
+
       // Update consultation state with new notes
       setConsultation({
         ...consultation,
@@ -151,7 +153,7 @@ export const ConsultationSession: React.FC = () => {
       setSaveSuccess(false);
 
       const savedNotes = await updateConsultationNotes(consultation.consultation_id, editableNotes);
-      
+
       setNotes(savedNotes);
       setEditableNotes(savedNotes);
       setSaveSuccess(true);
@@ -261,7 +263,7 @@ export const ConsultationSession: React.FC = () => {
                         timeStyle: 'short',
                       })}
                     </div>
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                       <button
                         className={styles.downloadButton}
                         type="button"
@@ -278,6 +280,13 @@ export const ConsultationSession: React.FC = () => {
                       >
                         {loadingNotes ? 'Generating...' : 'Show notes'}
                       </button>
+                      <button
+                        className={styles.downloadButton}
+                        type="button"
+                        onClick={() => setShowActionItems(!showActionItems)}
+                      >
+                        {showActionItems ? 'Hide treatment plan' : 'Show treatment plan'}
+                      </button>
                     </div>
                   </div>
                 );
@@ -287,6 +296,11 @@ export const ConsultationSession: React.FC = () => {
             !isDoctor && <div className={styles.note}>Recording not yet available.</div>
           )}
         </div>
+
+        {/* Action Items Section */}
+        {showActionItems && consultation && (
+          <ActionItems consultationId={consultation.consultation_id} isDoctor={isDoctor} />
+        )}
       </div>
 
       {/* Notes Modal */}

@@ -352,4 +352,154 @@ export class ConsultationsService {
       summary: updatedConsultation.AI_summary || '',
     };
   }
+
+  async getActionItems(userId: string, consultationId: number) {
+    const user = await prisma.user.findUnique({
+      where: { user_id: userId },
+      include: { doctor_profile: true, patient_profile: true },
+    });
+
+    if (!user) {
+      throw new ForbiddenException('User not found');
+    }
+
+    const consultation = await prisma.consultation.findUnique({
+      where: { consultation_id: consultationId },
+      include: { appointment: true },
+    });
+
+    if (!consultation) {
+      throw new NotFoundException('Consultation not found');
+    }
+
+    // Check access - doctor or patient tied to the appointment
+    const isDoctorOwner = user.doctor_profile?.doctor_id === consultation.appointment.doctor_id;
+    const isPatientOwner = user.patient_profile?.patient_id === consultation.appointment.patient_id;
+
+    if (!isDoctorOwner && !isPatientOwner) {
+      throw new ForbiddenException('You do not have access to this consultation');
+    }
+
+    return prisma.consultationActionItem.findMany({
+      where: { consultation_id: consultationId },
+      orderBy: { created_at: 'asc' },
+    });
+  }
+
+  async createActionItem(
+    userId: string,
+    consultationId: number,
+    createDto: { description: string },
+  ) {
+    const doctorId = await this.getDoctorProfileId(userId);
+
+    const consultation = await prisma.consultation.findUnique({
+      where: { consultation_id: consultationId },
+      include: { appointment: true },
+    });
+
+    if (!consultation) {
+      throw new NotFoundException('Consultation not found');
+    }
+
+    if (consultation.appointment.doctor_id !== doctorId) {
+      throw new ForbiddenException('Only the consultation doctor can create action items');
+    }
+
+    return prisma.consultationActionItem.create({
+      data: {
+        consultation_id: consultationId,
+        description: createDto.description,
+      },
+    });
+  }
+
+  async updateActionItem(
+    userId: string,
+    consultationId: number,
+    actionItemId: number,
+    updateDto: { description?: string; is_completed?: boolean },
+  ) {
+    const user = await prisma.user.findUnique({
+      where: { user_id: userId },
+      include: { doctor_profile: true, patient_profile: true },
+    });
+
+    if (!user) {
+      throw new ForbiddenException('User not found');
+    }
+
+    const actionItem = await prisma.consultationActionItem.findUnique({
+      where: { action_item_id: actionItemId },
+      include: {
+        consultation: {
+          include: { appointment: true },
+        },
+      },
+    });
+
+    if (!actionItem || actionItem.consultation_id !== consultationId) {
+      throw new NotFoundException('Action item not found');
+    }
+
+    const consultation = actionItem.consultation;
+    const isDoctorOwner = user.doctor_profile?.doctor_id === consultation.appointment.doctor_id;
+    const isPatientOwner = user.patient_profile?.patient_id === consultation.appointment.patient_id;
+
+    if (!isDoctorOwner && !isPatientOwner) {
+      throw new ForbiddenException('You do not have access to this action item');
+    }
+
+    // Doctors can only update description, patients can only toggle completion
+    const updateData: any = {};
+    if (isDoctorOwner) {
+      // Doctor can only update description, not completion status
+      if (updateDto.description !== undefined) {
+        updateData.description = updateDto.description;
+      }
+      if (updateDto.is_completed !== undefined) {
+        throw new ForbiddenException('Doctors cannot change action item completion status. Only patients can mark items as completed.');
+      }
+    } else if (isPatientOwner) {
+      // Patient can only toggle completion
+      if (updateDto.is_completed !== undefined) {
+        updateData.is_completed = updateDto.is_completed;
+      }
+      if (updateDto.description !== undefined) {
+        throw new ForbiddenException('Patients cannot modify action item descriptions');
+      }
+    }
+
+    return prisma.consultationActionItem.update({
+      where: { action_item_id: actionItemId },
+      data: updateData,
+    });
+  }
+
+  async deleteActionItem(userId: string, consultationId: number, actionItemId: number) {
+    const doctorId = await this.getDoctorProfileId(userId);
+
+    const actionItem = await prisma.consultationActionItem.findUnique({
+      where: { action_item_id: actionItemId },
+      include: {
+        consultation: {
+          include: { appointment: true },
+        },
+      },
+    });
+
+    if (!actionItem || actionItem.consultation_id !== consultationId) {
+      throw new NotFoundException('Action item not found');
+    }
+
+    if (actionItem.consultation.appointment.doctor_id !== doctorId) {
+      throw new ForbiddenException('Only the consultation doctor can delete action items');
+    }
+
+    await prisma.consultationActionItem.delete({
+      where: { action_item_id: actionItemId },
+    });
+
+    return { message: 'Action item deleted successfully' };
+  }
 }

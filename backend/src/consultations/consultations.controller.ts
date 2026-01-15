@@ -3,6 +3,7 @@ import {
   Post,
   Get,
   Put,
+  Delete,
   Param,
   Body,
   UseGuards,
@@ -23,6 +24,8 @@ import { PrismaClient } from '@prisma/client';
 import { createReadStream } from 'fs';
 import { Response } from 'express';
 import { UpdateNotesDto } from './dto/update-notes.dto';
+import { CreateActionItemDto } from './dto/create-action-item.dto';
+import { UpdateActionItemDto } from './dto/update-action-item.dto';
 
 @Controller('consultations')
 @UseGuards(AuthGuard('jwt'))
@@ -119,5 +122,46 @@ export class ConsultationsController {
   ) {
     const userId = req.user?.userId || req.user?.sub;
     return this.consultationsService.updateNotes(userId, consultationId, updateDto);
+  }
+
+  // Action Items endpoints
+  @Get(':consultationId/action-items')
+  async getActionItems(
+    @Req() req,
+    @Param('consultationId', ParseIntPipe) consultationId: number,
+  ) {
+    const userId = req.user?.userId || req.user?.sub;
+    return this.consultationsService.getActionItems(userId, consultationId);
+  }
+
+  @Post(':consultationId/action-items')
+  async createActionItem(
+    @Req() req,
+    @Param('consultationId', ParseIntPipe) consultationId: number,
+    @Body() createDto: CreateActionItemDto,
+  ) {
+    const userId = req.user?.userId || req.user?.sub;
+    return this.consultationsService.createActionItem(userId, consultationId, createDto);
+  }
+
+  @Put(':consultationId/action-items/:actionItemId')
+  async updateActionItem(
+    @Req() req,
+    @Param('consultationId', ParseIntPipe) consultationId: number,
+    @Param('actionItemId', ParseIntPipe) actionItemId: number,
+    @Body() updateDto: UpdateActionItemDto,
+  ) {
+    const userId = req.user?.userId || req.user?.sub;
+    return this.consultationsService.updateActionItem(userId, consultationId, actionItemId, updateDto);
+  }
+
+  @Delete(':consultationId/action-items/:actionItemId')
+  async deleteActionItem(
+    @Req() req,
+    @Param('consultationId', ParseIntPipe) consultationId: number,
+    @Param('actionItemId', ParseIntPipe) actionItemId: number,
+  ) {
+    const userId = req.user?.userId || req.user?.sub;
+    return this.consultationsService.deleteActionItem(userId, consultationId, actionItemId);
   }
 }

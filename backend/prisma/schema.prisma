@@ -105,6 +105,7 @@ model Consultation {
     appointment Appointment @relation(fields: [appointment_id], references: [appointment_id])
 
     recordings ConsultationRecording[]
+    actionItems ConsultationActionItem[]
 
 }
 
@@ -117,6 +118,20 @@ model ConsultationRecording {
     consultation Consultation @relation(fields: [consultation_id], references: [consultation_id], onDelete: Cascade)
 
     @@index([consultation_id])
+}
+
+model ConsultationActionItem {
+    action_item_id     Int       @id @default(autoincrement())
+    consultation_id    Int
+    description        String    @db.Text
+    is_completed       Boolean   @default(false)
+    created_at         DateTime  @default(now())
+    updated_at         DateTime  @updatedAt
+
+    consultation Consultation @relation(fields: [consultation_id], references: [consultation_id], onDelete: Cascade)
+
+    @@index([consultation_id])
+    @@index([consultation_id, is_completed])
 }
 
 model DoctorPatient {
