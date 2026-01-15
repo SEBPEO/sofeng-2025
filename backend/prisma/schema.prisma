@@ -22,6 +22,8 @@ model User{
     receivedMessages    Chat[]      @relation("ReceivedMessages")
     doctor_profile      DoctorProfile?
     patient_profile     PatientProfile?
+    notifications       Notification[]
+    notificationPreferences NotificationPreferences?
     
 }
 
@@ -160,6 +162,60 @@ model Availability {
     doctor              DoctorProfile @relation(fields: [doctor_id], references: [doctor_id], onDelete: Cascade)
 
     @@unique([doctor_id, day_of_week])
+}
+
+model NotificationPreferences {
+    id                          Int      @id @default(autoincrement())
+    user_id                     String   @unique
+    
+    // Email notifications
+    email_enabled               Boolean  @default(true)
+    email_unread_messages       Boolean  @default(true)
+    email_appointments          Boolean  @default(true)
+    
+    // Push notifications
+    push_enabled                Boolean  @default(true)
+    push_messages               Boolean  @default(true)
+    push_appointments           Boolean  @default(true)
+    
+    // In-app notifications
+    in_app_enabled              Boolean  @default(true)
+    in_app_messages             Boolean  @default(true)
+    in_app_appointments         Boolean  @default(true)
+    
+    // Appointment reminder timing (in minutes before appointment)
+    reminder_time_1             Int      @default(1440) // 1 day = 1440 minutes
+    reminder_time_2             Int      @default(60)   // 1 hour = 60 minutes
+    
+    created_at                  DateTime @default(now())
+    updated_at                  DateTime @updatedAt
+    
+    user                        User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+}
+
+model Notification {
+    notification_id     Int              @id @default(autoincrement())
+    user_id             String
+    type                NotificationType
+    title               String           @db.VarChar(200)
+    message             String           @db.Text
+    related_id          String?          // Can be appointment_id, message_id, etc.
+    is_read             Boolean          @default(false)
+    created_at          DateTime         @default(now())
+    read_at             DateTime?
+    
+    user                User             @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+    
+    @@index([user_id, is_read])
+    @@index([created_at])
+}
+
+enum NotificationType {
+    MESSAGE
+    APPOINTMENT_REMINDER
+    APPOINTMENT_SCHEDULED
+    APPOINTMENT_CANCELLED
+    APPOINTMENT_RESCHEDULED
 }
 
 

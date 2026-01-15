@@ -11,6 +11,8 @@ import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { AppointmentResponseDto } from './dto/appointment-response.dto';
 import { AvailabilityService } from '../availability/availability.service';
 import { RequestRescheduleDto } from './dto/request-reschedule.dto';
+import { NotificationsService } from '../notifications/notifications.service';
+import { EmailService } from '../notifications/email.service';
 
 const prisma = new PrismaClient();
 
@@ -20,6 +22,8 @@ export class AppointmentsService {
 
   constructor(
     private readonly availabilityService: AvailabilityService,
+    private readonly notificationsService: NotificationsService,
+    private readonly emailService: EmailService,
   ) {}
 
   async create(
@@ -125,6 +129,9 @@ export class AppointmentsService {
         },
       },
     });
+
+    // Send appointment scheduled notifications
+    await this.sendAppointmentScheduledNotifications(appointment);
 
     return this.mapToResponseDto(appointment);
   }
@@ -552,5 +559,45 @@ export class AppointmentsService {
         },
       },
     };
+  }
+
+  private async sendAppointmentScheduledNotifications(appointment: any) {
+    const doctorName = `Dr. ${appointment.doctor.user.first_name} ${appointment.doctor.user.last_name}`;
+    const patientName = `${appointment.patient.user.first_name} ${appointment.patient.user.last_name}`;
+    const appointmentDate = new Date(appointment.appointment_datetime);
+
+    // Notify patient
+    await this.notificationsService.createNotification(
+      appointment.patient.user.user_id,
+      'APPOINTMENT_SCHEDULED',
+      'Appointment Scheduled',
+      `Your appointment with ${doctorName} has been scheduled for ${appointmentDate.toLocaleString()}`,
+      appointment.appointment_id.toString(),
+    );
+
+    await this.emailService.sendAppointmentScheduledNotification(
+      appointment.patient.user.user_id,
+      appointment.patient.user.email,
+      patientName,
+      appointmentDate,
+      doctorName,
+    );
+
+    // Notify doctor
+    await this.notificationsService.createNotification(
+      appointment.doctor.user.user_id,
+      'APPOINTMENT_SCHEDULED',
+      'New Appointment',
+      `New appointment scheduled with ${patientName} for ${appointmentDate.toLocaleString()}`,
+      appointment.appointment_id.toString(),
+    );
+
+    await this.emailService.sendAppointmentScheduledNotification(
+      appointment.doctor.user.user_id,
+      appointment.doctor.user.email,
+      doctorName,
+      appointmentDate,
+      patientName,
+    );
   }
 }
