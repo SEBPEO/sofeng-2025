@@ -45,15 +45,22 @@ export class AppointmentsService {
     );
 
     // Check if the requested time matches an available slot
-    const requestedTime = appointmentDateTime.toISOString();
     const duration = createAppointmentDto.duration_minutes || 30;
-    const requestedEndTime = new Date(
-      appointmentDateTime.getTime() + duration * 60000,
-    ).toISOString();
-
-    const isValidSlot = availableSlots.some(
-      (slot) => slot.start_time === requestedTime && slot.duration_minutes === duration,
+ 
+    // Compare by truncating to minutes (ignore seconds/milliseconds)
+    const requestedTimeMinutes = new Date(
+      Math.floor(appointmentDateTime.getTime() / 60000) * 60000,
     );
+    
+    const isValidSlot = availableSlots.some((slot) => {
+      const slotStartMinutes = new Date(
+        Math.floor(new Date(slot.start_time).getTime() / 60000) * 60000,
+      );
+      return (
+        requestedTimeMinutes.getTime() === slotStartMinutes.getTime() &&
+        slot.duration_minutes === duration
+      );
+    });
 
     if (!isValidSlot) {
       throw new BadRequestException(
@@ -131,7 +138,13 @@ export class AppointmentsService {
     });
 
     // Send appointment scheduled notifications
-    await this.sendAppointmentScheduledNotifications(appointment);
+    // Wrap in try-catch so notification errors don't fail the appointment creation
+    try {
+      await this.sendAppointmentScheduledNotifications(appointment);
+    } catch (error) {
+      this.logger.error('Failed to send appointment scheduled notifications:', error);
+      // Continue anyway - appointment is already created
+    }
 
     return this.mapToResponseDto(appointment);
   }

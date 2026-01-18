@@ -61,10 +61,11 @@ export const Appointments = () => {
       await createAppointment(createDto);
       await loadAppointments();
       setShowForm(false);
+      setEditingAppointment(null);
     } catch (err: any) {
       console.error('Failed to create appointment:', err);
       setError(err.response?.data?.message || 'Failed to create appointment');
-      throw err;
+      // Don't re-throw to prevent form submission issues
     }
   };
 
@@ -107,7 +108,7 @@ export const Appointments = () => {
     } catch (err: any) {
       console.error('Failed to update appointment:', err);
       setError(err.response?.data?.message || 'Failed to reschedule appointment');
-      throw err;
+      // Don't re-throw to prevent form submission issues
     }
   };
 
@@ -143,6 +144,7 @@ export const Appointments = () => {
   };
 
   const handleCancelForm = () => {
+    // Reset all form state when canceling
     setShowForm(false);
     setEditingAppointment(null);
     setError(null);

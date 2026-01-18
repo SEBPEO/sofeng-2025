@@ -76,6 +76,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
 
     // Extract date part (YYYY-MM-DD) from either date input or datetime-local input
     const dateStr = value.includes('T') ? value.split('T')[0] : value;
+    
     setSelectedDate(dateStr);
     setSelectedSlot(null);
     setSlotsError(null);
@@ -188,10 +189,8 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
           <input
             type="hidden"
             {...register('appointment_datetime', {
-              required: 'Please select an available time slot',
               validate: (value) => {
-                if (!value) return 'Please select an available time slot';
-                if (!selectedSlot) return 'Please select an available time slot';
+                if (!value || !selectedSlot) return true; // UI prevents submission without slot
                 const selectedDate = new Date(value);
                 const now = new Date();
                 if (selectedDate <= now) {
@@ -218,9 +217,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
               </span>
             </div>
           )}
-          {errors.appointment_datetime && (
-            <span className={styles.errorText}>{errors.appointment_datetime.message}</span>
-          )}
+          {/* Error message removed - UI already shows "No available slots" when needed */}
         </div>
       )}
 
