@@ -50,8 +50,8 @@ $ npm run start:prod
 # unit tests
 $ npm run test
 
-# e2e tests
-$ npm run test:e2e
+# integration tests
+$ npm run test:integration
 
 # test coverage
 $ npm run test:cov
@@ -98,5 +98,5 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
 
 ## Database scheme
-<img width="1044" height="746" alt="image" src="https://github.com/user-attachments/assets/9cd187de-51c2-4110-b17c-35d5396b0b06" />
 
+<img width="1044" height="746" alt="image" src="https://github.com/user-attachments/assets/9cd187de-51c2-4110-b17c-35d5396b0b06" />
