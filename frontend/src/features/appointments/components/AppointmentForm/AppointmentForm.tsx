@@ -76,7 +76,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
 
     // Extract date part (YYYY-MM-DD) from either date input or datetime-local input
     const dateStr = value.includes('T') ? value.split('T')[0] : value;
-    
+
     setSelectedDate(dateStr);
     setSelectedSlot(null);
     setSlotsError(null);

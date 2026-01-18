@@ -46,12 +46,12 @@ export class AppointmentsService {
 
     // Check if the requested time matches an available slot
     const duration = createAppointmentDto.duration_minutes || 30;
- 
+
     // Compare by truncating to minutes (ignore seconds/milliseconds)
     const requestedTimeMinutes = new Date(
       Math.floor(appointmentDateTime.getTime() / 60000) * 60000,
     );
-    
+
     const isValidSlot = availableSlots.some((slot) => {
       const slotStartMinutes = new Date(
         Math.floor(new Date(slot.start_time).getTime() / 60000) * 60000,
@@ -460,14 +460,11 @@ export class AppointmentsService {
 
     const proposedTime = proposedDateTime.toISOString();
     const isValidSlot = availableSlots.some(
-      (slot) =>
-        slot.start_time === proposedTime && slot.duration_minutes === duration,
+      (slot) => slot.start_time === proposedTime && slot.duration_minutes === duration,
     );
 
     if (!isValidSlot) {
-      throw new BadRequestException(
-        'The proposed time slot is not available for the doctor.',
-      );
+      throw new BadRequestException('The proposed time slot is not available for the doctor.');
     }
 
     // Update appointment to pending_reschedule with proposed details

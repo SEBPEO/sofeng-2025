@@ -23,7 +23,7 @@ export const Appointments = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Get current user to determine role
   const currentUser = useAppSelector((state) => state.users?.current);
   const isDoctor = currentUser?.role === 'doctor';
@@ -153,9 +153,7 @@ export const Appointments = () => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1 className={styles.title}>
-          {isDoctor ? 'Patient Appointments' : 'My Appointments'}
-        </h1>
+        <h1 className={styles.title}>{isDoctor ? 'Patient Appointments' : 'My Appointments'}</h1>
         {!showForm && !isDoctor && (
           <Button onClick={handleNewAppointment}>Schedule New Appointment</Button>
         )}
@@ -198,4 +196,3 @@ export const Appointments = () => {
     </div>
   );
 };
-
