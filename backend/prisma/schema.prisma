@@ -104,6 +104,10 @@ model Consultation {
     recording           String?     @db.VarChar(200)
     transcript          String?  
     AI_summary          String? 
+    notes_approved_at   DateTime?
+    notes_approved_by   String?
+    notes_locked        Boolean     @default(false)
+    notes_status        NotesStatus @default(DRAFT)
 
     appointment Appointment @relation(fields: [appointment_id], references: [appointment_id])
 
@@ -164,6 +168,12 @@ enum AppointmentStatus {
     pending_reschedule
     completed
     cancelled
+}
+
+enum NotesStatus {
+    DRAFT
+    APPROVED
+    FINAL
 }
 
 model Availability {

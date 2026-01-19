@@ -11,6 +11,10 @@ export interface Consultation {
   recordings?: ConsultationRecording[];
   transcript?: string | null;
   AI_summary?: string | null;
+  notes_approved_at?: string | null;
+  notes_approved_by?: string | null;
+  notes_locked?: boolean;
+  notes_status?: 'DRAFT' | 'APPROVED' | 'FINAL';
   appointment: Appointment;
 }
 
@@ -85,6 +89,21 @@ export async function updateConsultationNotes(
   const response = await apiClient.put<ConsultationNotes>(
     `/consultations/${consultationId}/notes`,
     notes,
+  );
+  return response.data;
+}
+
+export interface ApproveNotesResponse {
+  success: boolean;
+  approvedAt: string;
+  status: string;
+}
+
+export async function approveConsultationNotes(
+  consultationId: number,
+): Promise<ApproveNotesResponse> {
+  const response = await apiClient.put<ApproveNotesResponse>(
+    `/consultations/${consultationId}/approve-notes`,
   );
   return response.data;
 }

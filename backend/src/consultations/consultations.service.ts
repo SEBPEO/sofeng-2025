@@ -395,6 +395,11 @@ export class ConsultationsService {
       throw new NotFoundException('Consultation not found');
     }
 
+    // Check if notes are locked
+    if (consultation.notes_locked) {
+      throw new ForbiddenException('Cannot edit notes that have been approved and locked');
+    }
+
     // Check if doctor owns this consultation
     if (consultation.appointment.doctor_id !== user.doctor_profile.doctor_id) {
       throw new ForbiddenException('You do not have access to update this consultation');
@@ -412,6 +417,81 @@ export class ConsultationsService {
     return {
       transcript: updatedConsultation.transcript || '',
       summary: updatedConsultation.AI_summary || '',
+    };
+  }
+
+  async approveNotes(
+    userId: string,
+    consultationId: number,
+  ): Promise<{ success: boolean; approvedAt: Date; status: string }> {
+    const user = await prisma.user.findUnique({
+      where: { user_id: userId },
+      include: { doctor_profile: true },
+    });
+
+    if (!user) {
+      throw new ForbiddenException('User not found');
+    }
+
+    // Only doctors can approve notes
+    if (!user.doctor_profile) {
+      throw new ForbiddenException('Only doctors can approve consultation notes');
+    }
+
+    const consultation = await prisma.consultation.findUnique({
+      where: { consultation_id: consultationId },
+      include: { appointment: true },
+    });
+
+    if (!consultation) {
+      throw new NotFoundException('Consultation not found');
+    }
+
+    // Check if doctor owns this consultation
+    if (consultation.appointment.doctor_id !== user.doctor_profile.doctor_id) {
+      throw new ForbiddenException('You do not have access to approve this consultation');
+    }
+
+    // Check if already approved
+    if (consultation.notes_locked) {
+      throw new ForbiddenException('Notes have already been approved and locked');
+    }
+
+    // Check if notes exist
+    if (!consultation.AI_summary && !consultation.transcript) {
+      throw new ForbiddenException('Cannot approve consultation without notes');
+    }
+
+    const approvedAt = new Date();
+
+    // Approve and lock notes
+    await prisma.consultation.update({
+      where: { consultation_id: consultationId },
+      data: {
+        notes_approved_at: approvedAt,
+        notes_approved_by: userId,
+        notes_locked: true,
+        notes_status: 'FINAL',
+      },
+    });
+
+    // Audit log
+    try {
+      await this.auditService.log({
+        userId,
+        action: 'CONSULTATION_EDIT',
+        resourceType: 'Consultation',
+        resourceId: consultationId.toString(),
+        details: { message: 'Doctor approved and locked consultation notes', status: 'FINAL' },
+      });
+    } catch (err) {
+      console.error('Failed to log approval audit:', err);
+    }
+
+    return {
+      success: true,
+      approvedAt,
+      status: 'FINAL',
     };
   }
 
