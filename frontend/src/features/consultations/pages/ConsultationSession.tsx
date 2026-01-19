@@ -8,6 +8,7 @@ import {
   getConsultationByAppointment,
   generateConsultationNotes,
   updateConsultationNotes,
+  approveConsultationNotes,
   type Consultation,
   type ConsultationNotes,
 } from '../api';
@@ -32,6 +33,7 @@ export const ConsultationSession: React.FC = () => {
   const [savingNotes, setSavingNotes] = useState(false);
   const [notesError, setNotesError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [approving, setApproving] = useState(false);
   const [showActionItems, setShowActionItems] = useState(true); // Показати по дефолту
   const isDoctor = currentUser?.role === 'doctor';
 
@@ -172,6 +174,38 @@ export const ConsultationSession: React.FC = () => {
       setNotesError(err?.response?.data?.message || 'Failed to save notes');
     } finally {
       setSavingNotes(false);
+    }
+  };
+
+  const handleApproveNotes = async () => {
+    if (!consultation) return;
+
+    try {
+      setApproving(true);
+      setNotesError(null);
+      const result = await approveConsultationNotes(consultation.consultation_id);
+
+      // Reflect locked state in UI
+      setConsultation({
+        ...consultation,
+        notes_locked: true,
+        notes_status: result.status as Consultation['notes_status'],
+        notes_approved_at: result.approvedAt,
+        notes_approved_by: currentUser?.user_id || currentUser?.id || null,
+      });
+
+      // Prevent further edits
+      if (editableNotes) {
+        setEditableNotes({ ...editableNotes });
+      }
+
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (err: any) {
+      console.error('Failed to approve notes:', err);
+      setNotesError(err?.response?.data?.message || 'Failed to approve notes');
+    } finally {
+      setApproving(false);
     }
   };
 
@@ -323,7 +357,7 @@ export const ConsultationSession: React.FC = () => {
               <div className={styles.notesContent}>
                 <div className={styles.notesSection}>
                   <h3>AI Summary</h3>
-                  {isDoctor ? (
+                  {isDoctor && !consultation?.notes_locked ? (
                     <textarea
                       className={styles.editableText}
                       value={editableNotes.summary}
@@ -337,7 +371,15 @@ export const ConsultationSession: React.FC = () => {
                     <div className={styles.notesText}>{editableNotes.summary}</div>
                   )}
                 </div>
-                {isDoctor && (
+                {consultation?.notes_approved_at && (
+                  <div className={styles.note}>
+                    Approved on {new Date(consultation.notes_approved_at).toLocaleString('en-US', {
+                      dateStyle: 'medium',
+                      timeStyle: 'short',
+                    })}
+                  </div>
+                )}
+                {isDoctor && !consultation?.notes_locked && (
                   <div className={styles.notesActions}>
                     <Button
                       variant="primary"
@@ -345,6 +387,13 @@ export const ConsultationSession: React.FC = () => {
                       disabled={savingNotes || !editableNotes}
                     >
                       {savingNotes ? 'Saving...' : 'Save Changes'}
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={handleApproveNotes}
+                      disabled={approving || savingNotes || !editableNotes}
+                    >
+                      {approving ? 'Approving...' : 'Approve & Lock'}
                     </Button>
                   </div>
                 )}

@@ -124,6 +124,15 @@ export class ConsultationsController {
     return this.consultationsService.updateNotes(userId, consultationId, updateDto);
   }
 
+  @Put(':consultationId/approve-notes')
+  async approveNotes(
+    @Req() req,
+    @Param('consultationId', ParseIntPipe) consultationId: number,
+  ) {
+    const userId = req.user?.userId || req.user?.sub;
+    return this.consultationsService.approveNotes(userId, consultationId);
+  }
+
   // Action Items endpoints
   @Get(':consultationId/action-items')
   async getActionItems(
