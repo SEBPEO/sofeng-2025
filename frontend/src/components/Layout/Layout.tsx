@@ -33,6 +33,7 @@ export const Layout = () => {
     { path: '/patients', icon: '❤️', label: 'My Patients' },
     { path: '/available-patients', icon: '👥', label: 'Available Patients' },
     { path: '/messages', icon: '💬', label: 'Messages' },
+    { path: '/audit-logs', icon: '📊', label: 'Audit Logs' },
     { path: '/profile', icon: '⚙️', label: 'Profile' },
     { path: '/notifications', icon: '🔔', label: 'Notifications' },
     { path: '/legal', icon: '📄', label: 'Legal' },
@@ -62,9 +63,9 @@ export const Layout = () => {
         </button>
         <div className={styles.mobileBrand}>
           <Logo />
-        <div className={styles.mobileActions}>
-          <NotificationBell />
-        </div>
+          <div className={styles.mobileActions}>
+            <NotificationBell />
+          </div>
           <span className={styles.brandText}>DocNotes</span>
         </div>
       </header>

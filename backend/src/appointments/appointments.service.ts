@@ -13,6 +13,7 @@ import { AvailabilityService } from '../availability/availability.service';
 import { RequestRescheduleDto } from './dto/request-reschedule.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import { EmailService } from '../notifications/email.service';
+import { AuditService } from '../audit/audit.service';
 
 const prisma = new PrismaClient();
 
@@ -24,6 +25,7 @@ export class AppointmentsService {
     private readonly availabilityService: AvailabilityService,
     private readonly notificationsService: NotificationsService,
     private readonly emailService: EmailService,
+    private readonly auditService: AuditService,
   ) {}
 
   async create(
@@ -144,6 +146,26 @@ export class AppointmentsService {
     } catch (error) {
       this.logger.error('Failed to send appointment scheduled notifications:', error);
       // Continue anyway - appointment is already created
+    }
+
+    // Log appointment creation
+    try {
+      const patientUserId = appointment.patient?.user?.user_id;
+      if (patientUserId) {
+        await this.auditService.logDataOperation(
+          patientUserId,
+          'CREATE',
+          'Appointment',
+          appointment.appointment_id.toString(),
+          {
+            doctor_id: appointment.doctor_id,
+            appointment_datetime: appointment.appointment_datetime,
+            duration_minutes: appointment.duration_minutes,
+          },
+        );
+      }
+    } catch (error) {
+      this.logger.error('Failed to log appointment creation:', error);
     }
 
     return this.mapToResponseDto(appointment);
@@ -356,6 +378,22 @@ export class AppointmentsService {
       },
     });
 
+    // Log appointment update
+    try {
+      const patientUserId = updatedAppointment.patient?.user?.user_id;
+      if (patientUserId) {
+        await this.auditService.logDataOperation(
+          patientUserId,
+          'UPDATE',
+          'Appointment',
+          appointmentId.toString(),
+          updateData,
+        );
+      }
+    } catch (error) {
+      this.logger.error('Failed to log appointment update:', error);
+    }
+
     return this.mapToResponseDto(updatedAppointment);
   }
 
@@ -366,6 +404,7 @@ export class AppointmentsService {
   ): Promise<void> {
     const appointment = await prisma.appointment.findUnique({
       where: { appointment_id: appointmentId },
+      include: { patient: { include: { user: true } } },
     });
 
     if (!appointment) {
@@ -391,6 +430,22 @@ export class AppointmentsService {
       where: { appointment_id: appointmentId },
       data: { status: 'cancelled' },
     });
+
+    // Log appointment cancellation
+    const userId = appointment.patient?.user?.user_id;
+    if (userId) {
+      try {
+        await this.auditService.logDataOperation(
+          userId,
+          'DELETE',
+          'Appointment',
+          appointmentId.toString(),
+          { reason: 'Appointment cancelled', cancelled_by: isPatient ? 'patient' : 'doctor' },
+        );
+      } catch (error) {
+        this.logger.error('Failed to log appointment cancellation:', error);
+      }
+    }
   }
 
   async findAllDoctors() {

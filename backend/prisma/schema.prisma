@@ -24,6 +24,7 @@ model User{
     patient_profile     PatientProfile?
     notifications       Notification[]
     notificationPreferences NotificationPreferences?
+    auditLogs           AuditLog[]
     
 }
 
@@ -233,4 +234,63 @@ enum NotificationType {
     APPOINTMENT_RESCHEDULED
 }
 
+model AuditLog {
+    audit_id        Int         @id @default(autoincrement())
+    user_id         String?     
+    action          AuditAction
+    resource_type   String      @db.VarChar(100) // "Appointment", "Consultation", "Chat"
+    resource_id     String?     @db.VarChar(100) // ID of the resource affected
+    details         String?     @db.Text        
+    ip_address      String?     @db.VarChar(45) // IPv4 or IPv6
+    user_agent      String?     @db.VarChar(500)
+    created_at      DateTime    @default(now())
+    
+    user            User?       @relation(fields: [user_id], references: [user_id], onDelete: SetNull)
+    
+    @@index([user_id, created_at])
+    @@index([resource_type, resource_id])
+    @@index([action])
+    @@index([created_at])
+}
 
+enum AuditAction {
+    // Authentication and Access
+    LOGIN
+    LOGOUT
+    LOGIN_FAILED
+    
+    // Data Operations
+    CREATE
+    READ
+    UPDATE
+    DELETE
+    
+    // File & Recording Operations
+    RECORDING_UPLOAD
+    RECORDING_DOWNLOAD
+    RECORDING_ACCESS
+    RECORDING_DELETE
+    FILE_UPLOAD
+    FILE_DOWNLOAD
+    FILE_ACCESS
+    FILE_DELETE
+    
+    // Sharing & Permissions
+    SHARE
+    UNSHARE
+    PERMISSION_CHANGE
+    
+    // Medical Records
+    CONSULTATION_VIEW
+    CONSULTATION_EDIT
+    MEDICAL_RECORD_ACCESS
+    PRESCRIPTION_VIEW
+    
+    // Communication
+    MESSAGE_SENT
+    MESSAGE_READ
+    
+    // System Events
+    SYSTEM_ERROR
+    SECURITY_ALERT
+}

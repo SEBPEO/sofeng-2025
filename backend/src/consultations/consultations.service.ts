@@ -1,15 +1,24 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import * as fs from 'fs';
 import * as path from 'path';
 import type { File as MulterFile } from 'multer';
 import { AiService } from './ai.service';
+import { AuditService } from '../audit/audit.service';
 
 const prisma = new PrismaClient();
 
 @Injectable()
 export class ConsultationsService {
-  constructor(private readonly aiService: AiService) {}
+  constructor(
+    private readonly aiService: AiService,
+    private readonly auditService: AuditService,
+  ) {}
   private ensureUploadsDir(dir: string) {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
@@ -64,7 +73,9 @@ export class ConsultationsService {
     const existing = await prisma.consultation.findUnique({
       where: { appointment_id: appointmentId },
       include: {
-        appointment: { include: { patient: { include: { user: true } }, doctor: { include: { user: true } } } },
+        appointment: {
+          include: { patient: { include: { user: true } }, doctor: { include: { user: true } } },
+        },
         recordings: { orderBy: { created_at: 'desc' } },
       },
     });
@@ -95,7 +106,11 @@ export class ConsultationsService {
   }
 
   async getByAppointmentForUser(
-    user: { doctor_profile?: { doctor_id: number } | null; patient_profile?: { patient_id: number } | null } | null,
+    user: {
+      user_id?: string;
+      doctor_profile?: { doctor_id: number } | null;
+      patient_profile?: { patient_id: number } | null;
+    } | null,
     appointmentId: number,
   ) {
     if (!user) {
@@ -106,7 +121,9 @@ export class ConsultationsService {
     if (user.doctor_profile) {
       await this.validateAppointmentOwnership(appointmentId, user.doctor_profile.doctor_id);
     } else if (user.patient_profile) {
-      const appointment = await prisma.appointment.findUnique({ where: { appointment_id: appointmentId } });
+      const appointment = await prisma.appointment.findUnique({
+        where: { appointment_id: appointmentId },
+      });
       if (!appointment || appointment.patient_id !== user.patient_profile.patient_id) {
         throw new ForbiddenException('You do not have access to this consultation');
       }
@@ -114,7 +131,7 @@ export class ConsultationsService {
       throw new ForbiddenException('Profile not found');
     }
 
-    return prisma.consultation.findUnique({
+    const consultation = await prisma.consultation.findUnique({
       where: { appointment_id: appointmentId },
       include: {
         appointment: {
@@ -126,6 +143,22 @@ export class ConsultationsService {
         recordings: { orderBy: { created_at: 'desc' } },
       },
     });
+
+    // Log consultation access
+    if (consultation && user.user_id) {
+      try {
+        await this.auditService.logMedicalRecordAccess(
+          user.user_id,
+          'CONSULTATION_VIEW',
+          consultation.consultation_id.toString(),
+          consultation.appointment.patient_id.toString(),
+        );
+      } catch (error) {
+        console.error('Failed to log consultation view:', error);
+      }
+    }
+
+    return consultation;
   }
 
   async saveRecording(userId: string, consultationId: number, file?: MulterFile) {
@@ -166,7 +199,7 @@ export class ConsultationsService {
     });
 
     // Keep legacy recording field pointing to most recent
-    return prisma.consultation.update({
+    const updated = await prisma.consultation.update({
       where: { consultation_id: consultationId },
       data: { recording: storedPath },
       include: {
@@ -179,6 +212,20 @@ export class ConsultationsService {
         recordings: { orderBy: { created_at: 'desc' } },
       },
     });
+
+    // Log recording upload
+    try {
+      await this.auditService.logFileAccess(
+        userId,
+        'RECORDING_UPLOAD',
+        consultationId.toString(),
+        storedPath,
+      );
+    } catch (error) {
+      console.error('Failed to log recording upload:', error);
+    }
+
+    return updated;
   }
 
   async getRecordingFile(
@@ -224,10 +271,25 @@ export class ConsultationsService {
       throw new NotFoundException('Recording file missing');
     }
 
+    // Log recording download
+    try {
+      await this.auditService.logFileAccess(
+        userId,
+        'RECORDING_DOWNLOAD',
+        recordingId.toString(),
+        recording.file_path,
+      );
+    } catch (error) {
+      console.error('Failed to log recording download:', error);
+    }
+
     return { fullPath, filename: path.basename(recording.file_path) };
   }
 
-  async generateNotes(userId: string, consultationId: number): Promise<{ transcript: string; summary: string }> {
+  async generateNotes(
+    userId: string,
+    consultationId: number,
+  ): Promise<{ transcript: string; summary: string }> {
     const user = await prisma.user.findUnique({
       where: { user_id: userId },
       include: { doctor_profile: true, patient_profile: true },
@@ -458,7 +520,9 @@ export class ConsultationsService {
         updateData.description = updateDto.description;
       }
       if (updateDto.is_completed !== undefined) {
-        throw new ForbiddenException('Doctors cannot change action item completion status. Only patients can mark items as completed.');
+        throw new ForbiddenException(
+          'Doctors cannot change action item completion status. Only patients can mark items as completed.',
+        );
       }
     } else if (isPatientOwner) {
       // Patient can only toggle completion
