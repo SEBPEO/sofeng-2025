@@ -77,7 +77,6 @@ describe('UsersController (integration)', () => {
     // Mock Prisma methods - use mockResolvedValue for flexibility in tests
     jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(null);
 
-    // @ts-expect-error - Mock implementation returns simplified data for testing
     jest.spyOn(prismaService.user, 'update').mockImplementation(async (args: any) => {
       const user = createMockUser();
       return {
@@ -90,39 +89,43 @@ describe('UsersController (integration)', () => {
 
     jest.spyOn(prismaService.doctorProfile, 'findUnique').mockResolvedValue(null);
     jest.spyOn(prismaService.doctorProfile, 'findFirst').mockResolvedValue(null);
-    // @ts-expect-error - Mock implementation returns simplified data for testing
-    jest.spyOn(prismaService.doctorProfile, 'create').mockImplementation(async (args: any) => {
-      return createMockDoctorProfile({
-        doctor_id: 1,
-        user_id: args.data.user_id,
-        ...args.data,
-      });
-    });
-    // @ts-expect-error - Mock implementation returns simplified data for testing
-    jest.spyOn(prismaService.doctorProfile, 'update').mockImplementation(async (args: any) => {
-      return createMockDoctorProfile({
-        ...args.data,
-        user_id: 'user-123',
-      });
-    });
+    (jest.spyOn(prismaService.doctorProfile, 'create') as any).mockImplementation(
+      async (args: any) => {
+        return createMockDoctorProfile({
+          doctor_id: 1,
+          user_id: args.data.user_id,
+          ...args.data,
+        });
+      },
+    );
+    (jest.spyOn(prismaService.doctorProfile, 'update') as any).mockImplementation(
+      async (args: any) => {
+        return createMockDoctorProfile({
+          ...args.data,
+          user_id: 'user-123',
+        });
+      },
+    );
 
     jest.spyOn(prismaService.patientProfile, 'findUnique').mockResolvedValue(null);
     jest.spyOn(prismaService.patientProfile, 'findFirst').mockResolvedValue(null);
-    // @ts-expect-error - Mock implementation returns simplified data for testing
-    jest.spyOn(prismaService.patientProfile, 'create').mockImplementation(async (args: any) => {
-      return createMockPatientProfile({
-        patient_id: 1,
-        user_id: args.data.user_id,
-        ...args.data,
-      });
-    });
-    // @ts-expect-error - Mock implementation returns simplified data for testing
-    jest.spyOn(prismaService.patientProfile, 'update').mockImplementation(async (args: any) => {
-      return createMockPatientProfile({
-        ...args.data,
-        user_id: 'user-123',
-      });
-    });
+    (jest.spyOn(prismaService.patientProfile, 'create') as any).mockImplementation(
+      async (args: any) => {
+        return createMockPatientProfile({
+          patient_id: 1,
+          user_id: args.data.user_id,
+          ...args.data,
+        });
+      },
+    );
+    (jest.spyOn(prismaService.patientProfile, 'update') as any).mockImplementation(
+      async (args: any) => {
+        return createMockPatientProfile({
+          ...args.data,
+          user_id: 'user-123',
+        });
+      },
+    );
 
     await app.init();
   });

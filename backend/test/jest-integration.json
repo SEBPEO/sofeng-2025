@@ -4,6 +4,18 @@
   "testEnvironment": "node",
   "testRegex": ".integration-spec.ts$",
   "transform": {
-    "^.+\\.(t|j)s$": "ts-jest"
+    "^.+\\.(t|j)s$": ["ts-jest", {
+      "isolatedModules": true,
+      "tsconfig": {
+        "noImplicitAny": false,
+        "strict": false,
+        "skipLibCheck": true
+      }
+    }]
+  },
+  "globals": {
+    "ts-jest": {
+      "isolatedModules": true
+    }
   }
 }
