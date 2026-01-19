@@ -23,7 +23,7 @@ export const Appointments = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Get current user to determine role
   const currentUser = useAppSelector((state) => state.users?.current);
   const isDoctor = currentUser?.role === 'doctor';
@@ -61,10 +61,11 @@ export const Appointments = () => {
       await createAppointment(createDto);
       await loadAppointments();
       setShowForm(false);
+      setEditingAppointment(null);
     } catch (err: any) {
       console.error('Failed to create appointment:', err);
       setError(err.response?.data?.message || 'Failed to create appointment');
-      throw err;
+      // Don't re-throw to prevent form submission issues
     }
   };
 
@@ -107,7 +108,7 @@ export const Appointments = () => {
     } catch (err: any) {
       console.error('Failed to update appointment:', err);
       setError(err.response?.data?.message || 'Failed to reschedule appointment');
-      throw err;
+      // Don't re-throw to prevent form submission issues
     }
   };
 
@@ -143,6 +144,7 @@ export const Appointments = () => {
   };
 
   const handleCancelForm = () => {
+    // Reset all form state when canceling
     setShowForm(false);
     setEditingAppointment(null);
     setError(null);
@@ -151,9 +153,7 @@ export const Appointments = () => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1 className={styles.title}>
-          {isDoctor ? 'Patient Appointments' : 'My Appointments'}
-        </h1>
+        <h1 className={styles.title}>{isDoctor ? 'Patient Appointments' : 'My Appointments'}</h1>
         {!showForm && !isDoctor && (
           <Button onClick={handleNewAppointment}>Schedule New Appointment</Button>
         )}
@@ -196,4 +196,3 @@ export const Appointments = () => {
     </div>
   );
 };
-
