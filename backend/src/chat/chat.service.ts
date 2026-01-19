@@ -5,6 +5,7 @@ import { ConversationDto } from './dto/conversation.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import { EmailService } from '../notifications/email.service';
 import { NotificationPreferencesService } from '../notification-preferences/notification-preferences.service';
+import { AuditService } from '../audit/audit.service';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -17,6 +18,7 @@ export class ChatService {
     private notificationsService: NotificationsService,
     private emailService: EmailService,
     private notificationPreferencesService: NotificationPreferencesService,
+    private auditService: AuditService,
   ) {
     if (!fs.existsSync(this.uploadDir)) {
       fs.mkdirSync(this.uploadDir, { recursive: true });
@@ -54,7 +56,12 @@ export class ChatService {
 
     if (!user) throw new NotFoundException('User not found');
 
-    const allowedUsers: Array<{ user_id: string; first_name: string; last_name: string; role: string }> = [];
+    const allowedUsers: Array<{
+      user_id: string;
+      first_name: string;
+      last_name: string;
+      role: string;
+    }> = [];
 
     if (user.doctor_profile) {
       user.doctor_profile.patients.forEach((rel) => {
@@ -124,7 +131,9 @@ export class ChatService {
       if (!a.last_message && !b.last_message) return 0;
       if (!a.last_message) return 1;
       if (!b.last_message) return -1;
-      return new Date(b.last_message.sent_at).getTime() - new Date(a.last_message.sent_at).getTime();
+      return (
+        new Date(b.last_message.sent_at).getTime() - new Date(a.last_message.sent_at).getTime()
+      );
     });
 
     return conversations;
@@ -164,7 +173,11 @@ export class ChatService {
     return messages;
   }
 
-  async sendMessage(senderId: string, receiverId: string, content: string): Promise<MessageResponseDto> {
+  async sendMessage(
+    senderId: string,
+    receiverId: string,
+    content: string,
+  ): Promise<MessageResponseDto> {
     await this.verifyCanChat(senderId, receiverId);
 
     const message = await this.prisma.chat.create({
@@ -196,6 +209,19 @@ export class ChatService {
 
     // Send notifications
     await this.sendMessageNotifications(message);
+
+    // Log message sent
+    try {
+      await this.auditService.logDataOperation(
+        senderId,
+        'MESSAGE_SENT',
+        'Chat',
+        message.message_id.toString(),
+        { receiverId },
+      );
+    } catch (error) {
+      console.error('Failed to log message sent:', error);
+    }
 
     return message;
   }
@@ -247,6 +273,19 @@ export class ChatService {
     // Send notifications
     await this.sendMessageNotifications(message);
 
+    // Log message sent with file
+    try {
+      await this.auditService.logDataOperation(
+        senderId,
+        'MESSAGE_SENT',
+        'Chat',
+        message.message_id.toString(),
+        { receiverId, fileName: file.originalname, fileType: file.mimetype },
+      );
+    } catch (error) {
+      console.error('Failed to log message sent:', error);
+    }
+
     return message;
   }
 
@@ -263,7 +302,10 @@ export class ChatService {
     });
   }
 
-  async getAttachment(messageId: number, userId: string): Promise<{ filePath: string; fileName: string }> {
+  async getAttachment(
+    messageId: number,
+    userId: string,
+  ): Promise<{ filePath: string; fileName: string }> {
     const message = await this.prisma.chat.findUnique({
       where: { message_id: messageId },
     });
@@ -313,8 +355,7 @@ export class ChatService {
     const receiverEmail = message.receiver.email;
 
     // Get receiver's notification preferences
-    const preferences =
-      await this.notificationPreferencesService.getPreferences(receiverId);
+    const preferences = await this.notificationPreferencesService.getPreferences(receiverId);
 
     // Create in-app notification if enabled
     if (preferences.in_app_enabled && preferences.in_app_messages) {

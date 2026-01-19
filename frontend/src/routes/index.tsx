@@ -1,6 +1,16 @@
 import React from 'react';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
-import { login, appointments, legal, profile, patients, consultations, chat, notifications } from '@/features';
+import {
+  login,
+  appointments,
+  legal,
+  profile,
+  patients,
+  consultations,
+  chat,
+  notifications,
+} from '@/features';
+import { AuditLogs } from '@/features/audit';
 import { Layout } from '@/components';
 import { getAuthToken } from '@/store/auth/authApi';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -67,6 +77,7 @@ const router = createBrowserRouter([
       { path: '/messages', element: <chat.pages.Messages /> },
       { path: '/profile', element: <profile.pages.Profile.Profile /> },
       { path: '/notifications', element: <notifications.NotificationSettings /> },
+      { path: '/audit-logs', element: <AuditLogs /> },
       { path: '/legal', element: <legal.pages.Legal /> },
     ],
   },

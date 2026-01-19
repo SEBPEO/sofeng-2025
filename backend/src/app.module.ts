@@ -12,6 +12,7 @@ import { ConsultationsModule } from './consultations/consultations.module';
 import { ChatModule } from './chat/chat.module';
 import { NotificationPreferencesModule } from './notification-preferences/notification-preferences.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { AuditModule } from './audit/audit.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { NotificationsModule } from './notifications/notifications.module';
       isGlobal: true,
     }),
     PrismaModule,
+    AuditModule, // Add audit module globally
     UsersModule,
     AuthModule,
     AppointmentsModule,
