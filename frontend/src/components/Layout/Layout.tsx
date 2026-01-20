@@ -33,6 +33,7 @@ export const Layout = () => {
     { path: '/patients', icon: '❤️', label: 'My Patients' },
     { path: '/available-patients', icon: '👥', label: 'Available Patients' },
     { path: '/messages', icon: '💬', label: 'Messages' },
+    { path: '/shared-notes', icon: '🔗', label: 'Shared Notes' },
     { path: '/audit-logs', icon: '📊', label: 'Audit Logs' },
     { path: '/profile', icon: '⚙️', label: 'Profile' },
     { path: '/notifications', icon: '🔔', label: 'Notifications' },

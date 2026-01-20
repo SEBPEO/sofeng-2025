@@ -76,6 +76,7 @@ const router = createBrowserRouter([
       { path: '/my-doctor', element: <patients.pages.MyDoctor /> },
       { path: '/doctor-notes', element: <patients.pages.DoctorNotes /> },
       { path: '/messages', element: <chat.pages.Messages /> },
+      { path: '/shared-notes', element: <consultations.pages.SharedNotes /> },
       { path: '/profile', element: <profile.pages.Profile.Profile /> },
       { path: '/notifications', element: <notifications.NotificationSettings /> },
       { path: '/audit-logs', element: <AuditLogs /> },

@@ -41,10 +41,7 @@ export async function getConsultationByAppointment(
   return response.data;
 }
 
-export async function uploadRecording(
-  consultationId: number,
-  file: File,
-): Promise<Consultation> {
+export async function uploadRecording(consultationId: number, file: File): Promise<Consultation> {
   const formData = new FormData();
   formData.append('file', file);
 
@@ -55,8 +52,18 @@ export async function uploadRecording(
       headers: { 'Content-Type': 'multipart/form-data' },
     },
   );
-
   return response.data;
+}
+
+export interface DoctorOption {
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  doctor_profile: {
+    doctor_id: number;
+    specialization?: string | null;
+  };
 }
 
 export interface ConsultationNotes {
@@ -79,6 +86,11 @@ export async function generateConsultationNotes(
   const response = await apiClient.post<ConsultationNotes>(
     `/consultations/${consultationId}/generate-notes`,
   );
+  return response.data;
+}
+
+export async function getDoctors(): Promise<DoctorOption[]> {
+  const response = await apiClient.get<DoctorOption[]>(`/users/doctors`);
   return response.data;
 }
 
@@ -108,10 +120,68 @@ export async function approveConsultationNotes(
   return response.data;
 }
 
-// Action Items API
-export async function getActionItems(
+export interface SharedConsultationNote {
+  share_id: number;
+  consultation_id: number;
+  shared_by_doctor_id: number;
+  shared_with_doctor_id: number;
+  permissions: string;
+  created_at: string;
+  revoked_at?: string | null;
+  consultation?: Consultation;
+  shared_by?: {
+    doctor_id: number;
+    user: {
+      user_id: string;
+      first_name: string;
+      last_name: string;
+      email: string;
+    };
+  };
+  shared_with?: {
+    doctor_id: number;
+    user: {
+      user_id: string;
+      first_name: string;
+      last_name: string;
+      email: string;
+    };
+  };
+}
+
+export async function shareConsultationNotes(
   consultationId: number,
-): Promise<ConsultationActionItem[]> {
+  sharedWithDoctorId: number,
+  permissions: string = 'read',
+): Promise<{ success: boolean; shareId: number }> {
+  const response = await apiClient.post<{ success: boolean; shareId: number }>(
+    `/consultations/${consultationId}/share`,
+    { sharedWithDoctorId, permissions },
+  );
+  return response.data;
+}
+
+export async function getSharedNotesWithMe(): Promise<SharedConsultationNote[]> {
+  const response = await apiClient.get<SharedConsultationNote[]>('/consultations/shared-with-me');
+  return response.data;
+}
+
+export async function getConsultationShares(
+  consultationId: number,
+): Promise<SharedConsultationNote[]> {
+  const response = await apiClient.get<SharedConsultationNote[]>(
+    `/consultations/${consultationId}/shares`,
+  );
+  return response.data;
+}
+
+export async function revokeConsultationShare(shareId: number): Promise<{ success: boolean }> {
+  const response = await apiClient.delete<{ success: boolean }>(`/consultations/shares/${shareId}`);
+  return response.data;
+}
+
+// Action Items API
+export async function getActionItems(consultationId: number): Promise<ConsultationActionItem[]> {
   const response = await apiClient.get<ConsultationActionItem[]>(
     `/consultations/${consultationId}/action-items`,
   );
