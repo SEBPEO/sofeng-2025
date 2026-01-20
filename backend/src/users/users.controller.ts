@@ -21,4 +21,11 @@ export class UsersController {
     const userId = req.user?.userId || req.user?.sub;
     return await this.usersService.updateProfile(userId, updateProfileDto);
   }
+
+  @Get('doctors')
+  @UseGuards(AuthGuard('jwt'))
+  async listDoctors(@Req() req) {
+    const userId = req.user?.userId || req.user?.sub;
+    return this.usersService.listDoctors(userId);
+  }
 }

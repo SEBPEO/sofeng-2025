@@ -61,6 +61,8 @@ model DoctorProfile{
     appointments    Appointment[]
     patients        DoctorPatient[] @relation("DoctorToPatient")
     availability    Availability[]
+    sharedNotesBy   SharedConsultationNote[] @relation("SharedBy")
+    sharedNotesWith SharedConsultationNote[] @relation("SharedWith")
 
 }
 
@@ -113,6 +115,7 @@ model Consultation {
 
     recordings ConsultationRecording[]
     actionItems ConsultationActionItem[]
+    sharedNotes SharedConsultationNote[]
 
 }
 
@@ -139,6 +142,24 @@ model ConsultationActionItem {
 
     @@index([consultation_id])
     @@index([consultation_id, is_completed])
+}
+
+model SharedConsultationNote {
+    share_id                Int         @id @default(autoincrement())
+    consultation_id         Int
+    shared_by_doctor_id     Int
+    shared_with_doctor_id   Int
+    permissions             String      @default("read") // "read" or "read_write"
+    created_at              DateTime    @default(now())
+    revoked_at              DateTime?
+
+    consultation    Consultation   @relation(fields: [consultation_id], references: [consultation_id], onDelete: Cascade)
+    shared_by       DoctorProfile  @relation("SharedBy", fields: [shared_by_doctor_id], references: [doctor_id], onDelete: Cascade)
+    shared_with     DoctorProfile  @relation("SharedWith", fields: [shared_with_doctor_id], references: [doctor_id], onDelete: Cascade)
+
+    @@unique([consultation_id, shared_by_doctor_id, shared_with_doctor_id])
+    @@index([shared_with_doctor_id])
+    @@index([consultation_id, shared_by_doctor_id])
 }
 
 model DoctorPatient {

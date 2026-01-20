@@ -646,4 +646,228 @@ export class ConsultationsService {
 
     return { message: 'Action item deleted successfully' };
   }
+
+  async shareNotes(
+    userId: string,
+    consultationId: number,
+    sharedWithDoctorId: number,
+    permissions: string = 'read',
+  ): Promise<{ success: boolean; shareId: number }> {
+    const user = await prisma.user.findUnique({
+      where: { user_id: userId },
+      include: { doctor_profile: true },
+    });
+
+    if (!user || !user.doctor_profile) {
+      throw new ForbiddenException('Only doctors can share notes');
+    }
+
+    const consultation = await prisma.consultation.findUnique({
+      where: { consultation_id: consultationId },
+      include: { appointment: true },
+    });
+
+    if (!consultation) {
+      throw new NotFoundException('Consultation not found');
+    }
+
+    // Verify current user is the doctor who created the consultation
+    if (consultation.appointment.doctor_id !== user.doctor_profile.doctor_id) {
+      throw new ForbiddenException('You can only share your own consultations');
+    }
+
+    // Verify the target doctor exists
+    const targetDoctor = await prisma.doctorProfile.findUnique({
+      where: { doctor_id: sharedWithDoctorId },
+      include: { user: true },
+    });
+
+    if (!targetDoctor) {
+      throw new NotFoundException('Target doctor not found');
+    }
+
+    // Prevent sharing with self
+    if (targetDoctor.doctor_id === user.doctor_profile.doctor_id) {
+      throw new ForbiddenException('Cannot share notes with yourself');
+    }
+
+    // Check if already shared with this doctor
+    const existingShare = await prisma.sharedConsultationNote.findUnique({
+      where: {
+        consultation_id_shared_by_doctor_id_shared_with_doctor_id: {
+          consultation_id: consultationId,
+          shared_by_doctor_id: user.doctor_profile.doctor_id,
+          shared_with_doctor_id: sharedWithDoctorId,
+        },
+      },
+    });
+
+    if (existingShare && !existingShare.revoked_at) {
+      throw new ForbiddenException('Notes already shared with this doctor');
+    }
+
+    // Create or restore share
+    let share;
+    if (existingShare && existingShare.revoked_at) {
+      // Restore revoked share
+      share = await prisma.sharedConsultationNote.update({
+        where: { share_id: existingShare.share_id },
+        data: {
+          revoked_at: null,
+          permissions,
+          created_at: new Date(),
+        },
+      });
+    } else {
+      // Create new share
+      share = await prisma.sharedConsultationNote.create({
+        data: {
+          consultation_id: consultationId,
+          shared_by_doctor_id: user.doctor_profile.doctor_id,
+          shared_with_doctor_id: sharedWithDoctorId,
+          permissions,
+        },
+      });
+    }
+
+    // Audit log
+    try {
+      await this.auditService.log({
+        userId,
+        action: 'SHARE',
+        resourceType: 'Consultation',
+        resourceId: consultationId.toString(),
+        details: {
+          message: `Shared consultation notes with doctor ${targetDoctor.user.first_name} ${targetDoctor.user.last_name}`,
+          permissions,
+        },
+      });
+    } catch (err) {
+      console.error('Failed to log share audit:', err);
+    }
+
+    return { success: true, shareId: share.share_id };
+  }
+
+  async getSharedNotes(userId: string): Promise<any[]> {
+    const user = await prisma.user.findUnique({
+      where: { user_id: userId },
+      include: { doctor_profile: true },
+    });
+
+    if (!user || !user.doctor_profile) {
+      throw new ForbiddenException('Only doctors can view shared notes');
+    }
+
+    const sharedNotes = await prisma.sharedConsultationNote.findMany({
+      where: {
+        shared_with_doctor_id: user.doctor_profile.doctor_id,
+        revoked_at: null,
+      },
+      include: {
+        consultation: {
+          include: {
+            appointment: {
+              include: {
+                doctor: { include: { user: true } },
+                patient: { include: { user: true } },
+              },
+            },
+          },
+        },
+        shared_by: { include: { user: true } },
+      },
+    });
+
+    return sharedNotes;
+  }
+
+  async getConsultationShares(userId: string, consultationId: number): Promise<any[]> {
+    const user = await prisma.user.findUnique({
+      where: { user_id: userId },
+      include: { doctor_profile: true },
+    });
+
+    if (!user || !user.doctor_profile) {
+      throw new ForbiddenException('Only doctors can view shares');
+    }
+
+    const consultation = await prisma.consultation.findUnique({
+      where: { consultation_id: consultationId },
+      include: { appointment: true },
+    });
+
+    if (!consultation) {
+      throw new NotFoundException('Consultation not found');
+    }
+
+    // Only the owner doctor can see shares of their consultation
+    if (consultation.appointment.doctor_id !== user.doctor_profile.doctor_id) {
+      throw new ForbiddenException('You can only view shares for your own consultations');
+    }
+
+    const shares = await prisma.sharedConsultationNote.findMany({
+      where: {
+        consultation_id: consultationId,
+        shared_by_doctor_id: user.doctor_profile.doctor_id,
+        revoked_at: null,
+      },
+      include: {
+        shared_with: { include: { user: true } },
+      },
+    });
+
+    return shares;
+  }
+
+  async revokeShare(userId: string, shareId: number): Promise<{ success: boolean }> {
+    const user = await prisma.user.findUnique({
+      where: { user_id: userId },
+      include: { doctor_profile: true },
+    });
+
+    if (!user || !user.doctor_profile) {
+      throw new ForbiddenException('Only doctors can revoke shares');
+    }
+
+    const share = await prisma.sharedConsultationNote.findUnique({
+      where: { share_id: shareId },
+    });
+
+    if (!share) {
+      throw new NotFoundException('Share not found');
+    }
+
+    // Only the doctor who shared can revoke
+    if (share.shared_by_doctor_id !== user.doctor_profile.doctor_id) {
+      throw new ForbiddenException('You can only revoke shares you created');
+    }
+
+    await prisma.sharedConsultationNote.update({
+      where: { share_id: shareId },
+      data: { revoked_at: new Date() },
+    });
+
+    // Audit log
+    try {
+      const sharedWith = await prisma.doctorProfile.findUnique({
+        where: { doctor_id: share.shared_with_doctor_id },
+        include: { user: true },
+      });
+
+      await this.auditService.log({
+        userId,
+        action: 'SHARE',
+        resourceType: 'Consultation',
+        resourceId: share.consultation_id.toString(),
+        details: {
+          message: `Revoked consultation note sharing from doctor ${sharedWith?.user.first_name} ${sharedWith?.user.last_name}`,
+        },
+      });
+    } catch (err) {
+      console.error('Failed to log revoke audit:', err);
+    }
+
+    return { success: true };
+  }
 }
