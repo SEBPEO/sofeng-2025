@@ -173,4 +173,10 @@ export class ConsultationsController {
     const userId = req.user?.userId || req.user?.sub;
     return this.consultationsService.deleteActionItem(userId, consultationId, actionItemId);
   }
+
+  @Get('my-notes')
+  async getMyConsultationNotes(@Req() req) {
+    const userId = req.user?.userId || req.user?.sub;
+    return this.consultationsService.getMyConsultationNotes(userId);
+  }
 }

@@ -42,6 +42,7 @@ export const Layout = () => {
   const getPatientNavItems = () => [
     { path: '/appointments', icon: '📅', label: 'Appointments' },
     { path: '/my-doctor', icon: '👨‍⚕️', label: 'My Doctor' },
+    { path: '/doctor-notes', icon: '📋', label: 'Doctor Notes' },
     { path: '/messages', icon: '💬', label: 'Messages' },
     { path: '/profile', icon: '⚙️', label: 'Profile' },
     { path: '/notifications', icon: '🔔', label: 'Notifications' },
