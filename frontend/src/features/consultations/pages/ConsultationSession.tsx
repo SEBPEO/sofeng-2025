@@ -9,8 +9,14 @@ import {
   generateConsultationNotes,
   updateConsultationNotes,
   approveConsultationNotes,
+  getDoctors,
+  shareConsultationNotes,
+  getConsultationShares,
+  revokeConsultationShare,
   type Consultation,
   type ConsultationNotes,
+  type SharedConsultationNote,
+  type DoctorOption,
 } from '../api';
 import { AudioRecorder } from '../components/AudioRecorder';
 import { ActionItems } from '../components/ActionItems';
@@ -35,6 +41,12 @@ export const ConsultationSession: React.FC = () => {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [approving, setApproving] = useState(false);
   const [showActionItems, setShowActionItems] = useState(true); // Показати по дефолту
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [sharedDoctors, setSharedDoctors] = useState<SharedConsultationNote[]>([]);
+  const [sharingDoctor, setSharingDoctor] = useState<number | null>(null);
+  const [sharingError, setSharingError] = useState<string | null>(null);
+  const [sharing, setSharing] = useState(false);
+  const [availableDoctors, setAvailableDoctors] = useState<DoctorOption[]>([]);
   const isDoctor = currentUser?.role === 'doctor';
 
   useEffect(() => {
@@ -110,6 +122,9 @@ export const ConsultationSession: React.FC = () => {
 
   const handleShowNotes = async () => {
     if (!consultation) return;
+
+    // Load shared doctors list when opening notes modal
+    await handleLoadSharedDoctors();
 
     // If notes already exist in consultation, show them
     if (consultation.AI_summary) {
@@ -209,6 +224,60 @@ export const ConsultationSession: React.FC = () => {
     }
   };
 
+  const handleLoadSharedDoctors = async () => {
+    if (!consultation) return;
+    try {
+      const shares = await getConsultationShares(consultation.consultation_id);
+      setSharedDoctors(shares);
+    } catch (err: any) {
+      console.error('Failed to load shared doctors:', err);
+      setSharingError('Failed to load shared doctors');
+    }
+  };
+
+  const handleShareNotes = async () => {
+    if (!consultation || !sharingDoctor) return;
+
+    try {
+      setSharing(true);
+      setSharingError(null);
+      await shareConsultationNotes(consultation.consultation_id, sharingDoctor, 'read');
+
+      // Reload shared doctors list
+      await handleLoadSharedDoctors();
+
+      setSharingDoctor(null);
+      setSharingError(null);
+    } catch (err: any) {
+      console.error('Failed to share notes:', err);
+      setSharingError(err?.response?.data?.message || 'Failed to share notes');
+    } finally {
+      setSharing(false);
+    }
+  };
+
+  const handleRevokeShare = async (shareId: number) => {
+    try {
+      await revokeConsultationShare(shareId);
+      // Reload shared doctors list
+      await handleLoadSharedDoctors();
+    } catch (err: any) {
+      console.error('Failed to revoke share:', err);
+      setSharingError(err?.response?.data?.message || 'Failed to revoke share');
+    }
+  };
+
+  useEffect(() => {
+    if (showShareModal && consultation) {
+      handleLoadSharedDoctors();
+      getDoctors()
+        .then((docs) => {
+          setAvailableDoctors(docs);
+        })
+        .catch(() => setSharingError('Failed to load doctors'));
+    }
+  }, [showShareModal, consultation?.consultation_id]);
+
   const handleCloseModal = () => {
     setShowNotesModal(false);
     setNotesError(null);
@@ -263,19 +332,27 @@ export const ConsultationSession: React.FC = () => {
           <div className={styles.sectionHeader}>
             <h2>Recording</h2>
             {recordingCount > 0 && (
-              <span className={styles.badge}>{recordingCount} / {maxRecordings} {maxRecordings === 1 ? 'recording' : 'recordings'}</span>
+              <span className={styles.badge}>
+                {recordingCount} / {maxRecordings}{' '}
+                {maxRecordings === 1 ? 'recording' : 'recordings'}
+              </span>
             )}
           </div>
           {isDoctor ? (
             <>
               {hasReachedLimit ? (
-                <div className={styles.note}>Recording limit reached ({maxRecordings} {maxRecordings === 1 ? 'recording' : 'recordings'} maximum).</div>
+                <div className={styles.note}>
+                  Recording limit reached ({maxRecordings}{' '}
+                  {maxRecordings === 1 ? 'recording' : 'recordings'} maximum).
+                </div>
               ) : (
                 <AudioRecorder onSave={handleUpload} />
               )}
             </>
           ) : (
-            <div className={styles.note}>Only doctors can record. You can play the recording below when available.</div>
+            <div className={styles.note}>
+              Only doctors can record. You can play the recording below when available.
+            </div>
           )}
 
           {uploading && <div className={styles.note}>Uploading...</div>}
@@ -343,11 +420,7 @@ export const ConsultationSession: React.FC = () => {
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h2>Consultation Notes</h2>
-              <button
-                className={styles.closeButton}
-                onClick={handleCloseModal}
-                type="button"
-              >
+              <button className={styles.closeButton} onClick={handleCloseModal} type="button">
                 ×
               </button>
             </div>
@@ -373,7 +446,8 @@ export const ConsultationSession: React.FC = () => {
                 </div>
                 {consultation?.notes_approved_at && (
                   <div className={styles.note}>
-                    Approved on {new Date(consultation.notes_approved_at).toLocaleString('en-US', {
+                    Approved on{' '}
+                    {new Date(consultation.notes_approved_at).toLocaleString('en-US', {
                       dateStyle: 'medium',
                       timeStyle: 'short',
                     })}
@@ -395,10 +469,82 @@ export const ConsultationSession: React.FC = () => {
                     >
                       {approving ? 'Approving...' : 'Approve & Lock'}
                     </Button>
+                    <Button variant="ghost" onClick={() => setShowShareModal(true)}>
+                      Share with Doctor
+                    </Button>
+                  </div>
+                )}
+                {isDoctor && (
+                  <div className={styles.sharedWithList}>
+                    <h4>Shared with:</h4>
+                    {sharedDoctors.length > 0 ? (
+                      <ul>
+                        {sharedDoctors.map((share) => (
+                          <li key={share.share_id}>
+                            {share.shared_with?.user.first_name} {share.shared_with?.user.last_name}
+                            <button
+                              type="button"
+                              onClick={() => handleRevokeShare(share.share_id)}
+                              style={{ marginLeft: '8px', color: 'red' }}
+                            >
+                              Revoke
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p>Not shared with anyone yet</p>
+                    )}
                   </div>
                 )}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Share Notes Modal */}
+      {showShareModal && isDoctor && (
+        <div className={styles.modalOverlay} onClick={() => setShowShareModal(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2>Share Consultation Notes</h2>
+              <button
+                className={styles.closeButton}
+                onClick={() => setShowShareModal(false)}
+                type="button"
+              >
+                ×
+              </button>
+            </div>
+            {sharingError && <div className={styles.error}>{sharingError}</div>}
+            <div className={styles.notesContent}>
+              <p>Share these notes with another doctor. They will have read-only access.</p>
+              <select
+                value={sharingDoctor || ''}
+                onChange={(e) => setSharingDoctor(e.target.value ? parseInt(e.target.value) : null)}
+                style={{ width: '100%', padding: '8px', marginBottom: '16px' }}
+              >
+                <option value="">Select a doctor...</option>
+                {availableDoctors.length === 0 && (
+                  <option value="" disabled>
+                    No doctors available
+                  </option>
+                )}
+                {availableDoctors.map((doc) => (
+                  <option key={doc.doctor_profile.doctor_id} value={doc.doctor_profile.doctor_id}>
+                    {doc.first_name} {doc.last_name} ({doc.email})
+                  </option>
+                ))}
+              </select>
+              <Button
+                variant="primary"
+                onClick={handleShareNotes}
+                disabled={sharing || !sharingDoctor}
+              >
+                {sharing ? 'Sharing...' : 'Share'}
+              </Button>
+            </div>
           </div>
         </div>
       )}

@@ -106,10 +106,7 @@ export class ConsultationsController {
   }
 
   @Post(':consultationId/generate-notes')
-  async generateNotes(
-    @Req() req,
-    @Param('consultationId', ParseIntPipe) consultationId: number,
-  ) {
+  async generateNotes(@Req() req, @Param('consultationId', ParseIntPipe) consultationId: number) {
     const userId = req.user?.userId || req.user?.sub;
     return this.consultationsService.generateNotes(userId, consultationId);
   }
@@ -125,20 +122,14 @@ export class ConsultationsController {
   }
 
   @Put(':consultationId/approve-notes')
-  async approveNotes(
-    @Req() req,
-    @Param('consultationId', ParseIntPipe) consultationId: number,
-  ) {
+  async approveNotes(@Req() req, @Param('consultationId', ParseIntPipe) consultationId: number) {
     const userId = req.user?.userId || req.user?.sub;
     return this.consultationsService.approveNotes(userId, consultationId);
   }
 
   // Action Items endpoints
   @Get(':consultationId/action-items')
-  async getActionItems(
-    @Req() req,
-    @Param('consultationId', ParseIntPipe) consultationId: number,
-  ) {
+  async getActionItems(@Req() req, @Param('consultationId', ParseIntPipe) consultationId: number) {
     const userId = req.user?.userId || req.user?.sub;
     return this.consultationsService.getActionItems(userId, consultationId);
   }
@@ -161,7 +152,12 @@ export class ConsultationsController {
     @Body() updateDto: UpdateActionItemDto,
   ) {
     const userId = req.user?.userId || req.user?.sub;
-    return this.consultationsService.updateActionItem(userId, consultationId, actionItemId, updateDto);
+    return this.consultationsService.updateActionItem(
+      userId,
+      consultationId,
+      actionItemId,
+      updateDto,
+    );
   }
 
   @Delete(':consultationId/action-items/:actionItemId')
@@ -172,5 +168,42 @@ export class ConsultationsController {
   ) {
     const userId = req.user?.userId || req.user?.sub;
     return this.consultationsService.deleteActionItem(userId, consultationId, actionItemId);
+  }
+
+  @Post(':consultationId/share')
+  async shareNotes(
+    @Req() req,
+    @Param('consultationId', ParseIntPipe) consultationId: number,
+    @Body('sharedWithDoctorId', ParseIntPipe) sharedWithDoctorId: number,
+    @Body('permissions') permissions: string = 'read',
+  ) {
+    const userId = req.user?.userId || req.user?.sub;
+    return this.consultationsService.shareNotes(
+      userId,
+      consultationId,
+      sharedWithDoctorId,
+      permissions,
+    );
+  }
+
+  @Get('shared-with-me')
+  async getSharedNotes(@Req() req) {
+    const userId = req.user?.userId || req.user?.sub;
+    return this.consultationsService.getSharedNotes(userId);
+  }
+
+  @Get(':consultationId/shares')
+  async getConsultationShares(
+    @Req() req,
+    @Param('consultationId', ParseIntPipe) consultationId: number,
+  ) {
+    const userId = req.user?.userId || req.user?.sub;
+    return this.consultationsService.getConsultationShares(userId, consultationId);
+  }
+
+  @Delete('shares/:shareId')
+  async revokeShare(@Req() req, @Param('shareId', ParseIntPipe) shareId: number) {
+    const userId = req.user?.userId || req.user?.sub;
+    return this.consultationsService.revokeShare(userId, shareId);
   }
 }

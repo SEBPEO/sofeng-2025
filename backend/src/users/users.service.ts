@@ -43,6 +43,29 @@ export class UsersService {
     return this.mapToUserResponse(user);
   }
 
+  async listDoctors(currentUserId?: string) {
+    return this.prisma.user.findMany({
+      where: {
+        role: 'doctor',
+        doctor_profile: { isNot: null },
+        ...(currentUserId ? { NOT: { user_id: currentUserId } } : {}),
+      },
+      select: {
+        user_id: true,
+        first_name: true,
+        last_name: true,
+        email: true,
+        doctor_profile: {
+          select: {
+            doctor_id: true,
+            specialization: true,
+          },
+        },
+      },
+      orderBy: { first_name: 'asc' },
+    });
+  }
+
   async updateProfile(userId: string, dto: UpdateProfileDto): Promise<UserResponseDto> {
     // Get current user to check if role is already set
     const currentUser = await this.prisma.user.findUnique({
