@@ -1,8 +1,5 @@
 import { useEffect, useState } from 'react';
-import {
-  getMyConsultationNotes,
-  type PatientConsultationNote,
-} from '@/features/consultations/api';
+import { getMyConsultationNotes, type PatientConsultationNote } from '@/features/consultations/api';
 import styles from './DoctorNotes.module.css';
 
 export function DoctorNotes() {
@@ -65,7 +62,9 @@ export function DoctorNotes() {
     <div className={styles.container}>
       <div className={styles.pageHeader}>
         <h1 className={styles.title}>Doctor Notes</h1>
-        <p className={styles.subtitle}>View all approved consultation notes from your doctor visits</p>
+        <p className={styles.subtitle}>
+          View all approved consultation notes from your doctor visits
+        </p>
       </div>
 
       {notes.length === 0 ? (
@@ -73,7 +72,8 @@ export function DoctorNotes() {
           <div className={styles.emptyStateIcon}>📋</div>
           <h2>No Notes Yet</h2>
           <p>
-            Once your doctor approves consultation notes, they will appear here. Check back after your appointments!
+            Once your doctor approves consultation notes, they will appear here. Check back after
+            your appointments!
           </p>
         </div>
       ) : (
@@ -148,8 +148,7 @@ export function DoctorNotes() {
                   <strong>Specialization:</strong> {selectedNote.doctor_specialization}
                 </p>
                 <p>
-                  <strong>Date:</strong>{' '}
-                  {new Date(selectedNote.appointment_date).toLocaleString()}
+                  <strong>Date:</strong> {new Date(selectedNote.appointment_date).toLocaleString()}
                 </p>
               </div>
 

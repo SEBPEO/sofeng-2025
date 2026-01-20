@@ -47,8 +47,7 @@ export class EmailService {
     senderName: string,
     messageCount: number,
   ) {
-    const preferences =
-      await this.notificationPreferencesService.getPreferences(userId);
+    const preferences = await this.notificationPreferencesService.getPreferences(userId);
 
     if (!preferences.email_enabled || !preferences.email_unread_messages) {
       return;
@@ -107,8 +106,7 @@ export class EmailService {
     doctorName: string,
     timeBeforeInMinutes: number,
   ) {
-    const preferences =
-      await this.notificationPreferencesService.getPreferences(userId);
+    const preferences = await this.notificationPreferencesService.getPreferences(userId);
 
     if (!preferences.email_enabled || !preferences.email_appointments) {
       return;
@@ -196,8 +194,7 @@ export class EmailService {
     appointmentDate: Date,
     doctorName: string,
   ) {
-    const preferences =
-      await this.notificationPreferencesService.getPreferences(userId);
+    const preferences = await this.notificationPreferencesService.getPreferences(userId);
 
     if (!preferences.email_enabled || !preferences.email_appointments) {
       return;
@@ -278,8 +275,7 @@ export class EmailService {
     doctorName: string,
     appointmentDate: Date,
   ) {
-    const preferences =
-      await this.notificationPreferencesService.getPreferences(userId);
+    const preferences = await this.notificationPreferencesService.getPreferences(userId);
 
     if (!preferences.email_enabled || !preferences.email_appointments) {
       return;

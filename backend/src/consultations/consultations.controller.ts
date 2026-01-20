@@ -106,10 +106,7 @@ export class ConsultationsController {
   }
 
   @Post(':consultationId/generate-notes')
-  async generateNotes(
-    @Req() req,
-    @Param('consultationId', ParseIntPipe) consultationId: number,
-  ) {
+  async generateNotes(@Req() req, @Param('consultationId', ParseIntPipe) consultationId: number) {
     const userId = req.user?.userId || req.user?.sub;
     return this.consultationsService.generateNotes(userId, consultationId);
   }
@@ -125,20 +122,14 @@ export class ConsultationsController {
   }
 
   @Put(':consultationId/approve-notes')
-  async approveNotes(
-    @Req() req,
-    @Param('consultationId', ParseIntPipe) consultationId: number,
-  ) {
+  async approveNotes(@Req() req, @Param('consultationId', ParseIntPipe) consultationId: number) {
     const userId = req.user?.userId || req.user?.sub;
     return this.consultationsService.approveNotes(userId, consultationId);
   }
 
   // Action Items endpoints
   @Get(':consultationId/action-items')
-  async getActionItems(
-    @Req() req,
-    @Param('consultationId', ParseIntPipe) consultationId: number,
-  ) {
+  async getActionItems(@Req() req, @Param('consultationId', ParseIntPipe) consultationId: number) {
     const userId = req.user?.userId || req.user?.sub;
     return this.consultationsService.getActionItems(userId, consultationId);
   }
@@ -161,7 +152,12 @@ export class ConsultationsController {
     @Body() updateDto: UpdateActionItemDto,
   ) {
     const userId = req.user?.userId || req.user?.sub;
-    return this.consultationsService.updateActionItem(userId, consultationId, actionItemId, updateDto);
+    return this.consultationsService.updateActionItem(
+      userId,
+      consultationId,
+      actionItemId,
+      updateDto,
+    );
   }
 
   @Delete(':consultationId/action-items/:actionItemId')
@@ -174,6 +170,7 @@ export class ConsultationsController {
     return this.consultationsService.deleteActionItem(userId, consultationId, actionItemId);
   }
 
+  // Patient consultation notes - for patients to view their approved notes
   @Get('my-notes')
   async getMyConsultationNotes(@Req() req) {
     const userId = req.user?.userId || req.user?.sub;

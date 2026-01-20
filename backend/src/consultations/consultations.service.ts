@@ -489,7 +489,7 @@ export class ConsultationsService {
       if (patientProfile && patientProfile.user && patientProfile.user.email) {
         const doctorName = `${user.first_name} ${user.last_name}`;
         const patientName = `${patientProfile.user.first_name} ${patientProfile.user.last_name}`;
-        
+
         // Send email notification
         await this.emailService.sendNotesApprovedNotification(
           patientProfile.user_id,
