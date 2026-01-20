@@ -217,3 +217,19 @@ export async function deleteActionItem(
 ): Promise<void> {
   await apiClient.delete(`/consultations/${consultationId}/action-items/${actionItemId}`);
 }
+// Patient consultation notes
+export interface PatientConsultationNote {
+  consultation_id: number;
+  appointment_date: string;
+  doctor_name: string;
+  doctor_specialization: string;
+  AI_summary: string | null;
+  transcript: string | null;
+  notes_approved_at: string | null;
+  notes_status: 'DRAFT' | 'APPROVED' | 'FINAL';
+}
+
+export async function getMyConsultationNotes(): Promise<PatientConsultationNote[]> {
+  const response = await apiClient.get<PatientConsultationNote[]>('/consultations/my-notes');
+  return response.data;
+}

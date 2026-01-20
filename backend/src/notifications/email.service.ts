@@ -47,8 +47,7 @@ export class EmailService {
     senderName: string,
     messageCount: number,
   ) {
-    const preferences =
-      await this.notificationPreferencesService.getPreferences(userId);
+    const preferences = await this.notificationPreferencesService.getPreferences(userId);
 
     if (!preferences.email_enabled || !preferences.email_unread_messages) {
       return;
@@ -107,8 +106,7 @@ export class EmailService {
     doctorName: string,
     timeBeforeInMinutes: number,
   ) {
-    const preferences =
-      await this.notificationPreferencesService.getPreferences(userId);
+    const preferences = await this.notificationPreferencesService.getPreferences(userId);
 
     if (!preferences.email_enabled || !preferences.email_appointments) {
       return;
@@ -196,8 +194,7 @@ export class EmailService {
     appointmentDate: Date,
     doctorName: string,
   ) {
-    const preferences =
-      await this.notificationPreferencesService.getPreferences(userId);
+    const preferences = await this.notificationPreferencesService.getPreferences(userId);
 
     if (!preferences.email_enabled || !preferences.email_appointments) {
       return;
@@ -261,6 +258,94 @@ export class EmailService {
           </div>
           <div class="footer">
             <p>You're receiving this email because you have email notifications enabled for appointments.</p>
+            <p>You can change your notification preferences in your account settings.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    await this.sendEmail(userEmail, subject, html);
+  }
+
+  async sendNotesApprovedNotification(
+    userId: string,
+    userEmail: string,
+    userName: string,
+    doctorName: string,
+    appointmentDate: Date,
+  ) {
+    const preferences = await this.notificationPreferencesService.getPreferences(userId);
+
+    if (!preferences.email_enabled || !preferences.email_appointments) {
+      return;
+    }
+
+    const formattedDate = appointmentDate.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    const subject = `Your consultation notes are ready - ${doctorName}`;
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #4A90E2; color: white; padding: 20px; text-align: center; }
+          .content { background-color: #f9f9f9; padding: 30px; border-radius: 5px; margin-top: 20px; }
+          .appointment-details {
+            background-color: white;
+            padding: 20px;
+            border-left: 4px solid #4A90E2;
+            margin: 20px 0;
+          }
+          .button { 
+            display: inline-block; 
+            padding: 12px 30px; 
+            background-color: #4A90E2; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 5px; 
+            margin-top: 20px;
+          }
+          .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🏥 Medical AI Notetaker</h1>
+          </div>
+          <div class="content">
+            <h2>📋 Your Consultation Notes Are Ready</h2>
+            <p>Hi ${userName},</p>
+            <p>Dr. ${doctorName} has finalized and approved the notes from your consultation.</p>
+            
+            <div class="appointment-details">
+              <h3>Consultation Details</h3>
+              <p><strong>Doctor:</strong> ${doctorName}</p>
+              <p><strong>Date:</strong> ${formattedDate}</p>
+            </div>
+            
+            <p>The notes include:</p>
+            <ul>
+              <li>Doctor's observations and recommendations</li>
+              <li>AI-generated summary of your visit</li>
+              <li>Full transcript of your consultation</li>
+            </ul>
+            
+            <p>You can now view your complete consultation notes in your patient dashboard.</p>
+            <a href="${this.configService.get('FRONTEND_URL')}/doctor-notes" class="button">View Doctor Notes</a>
+          </div>
+          <div class="footer">
+            <p>You're receiving this email because you have email notifications enabled.</p>
             <p>You can change your notification preferences in your account settings.</p>
           </div>
         </div>

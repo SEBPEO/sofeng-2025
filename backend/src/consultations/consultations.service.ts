@@ -10,6 +10,8 @@ import * as path from 'path';
 import type { File as MulterFile } from 'multer';
 import { AiService } from './ai.service';
 import { AuditService } from '../audit/audit.service';
+import { EmailService } from '../notifications/email.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 const prisma = new PrismaClient();
 
@@ -18,6 +20,8 @@ export class ConsultationsService {
   constructor(
     private readonly aiService: AiService,
     private readonly auditService: AuditService,
+    private readonly emailService: EmailService,
+    private readonly notificationsService: NotificationsService,
   ) {}
   private ensureUploadsDir(dir: string) {
     if (!fs.existsSync(dir)) {
@@ -475,6 +479,39 @@ export class ConsultationsService {
       },
     });
 
+    // Send email notification to patient
+    try {
+      const patientProfile = await prisma.patientProfile.findUnique({
+        where: { patient_id: consultation.appointment.patient_id },
+        include: { user: true },
+      });
+
+      if (patientProfile && patientProfile.user && patientProfile.user.email) {
+        const doctorName = `${user.first_name} ${user.last_name}`;
+        const patientName = `${patientProfile.user.first_name} ${patientProfile.user.last_name}`;
+
+        // Send email notification
+        await this.emailService.sendNotesApprovedNotification(
+          patientProfile.user_id,
+          patientProfile.user.email,
+          patientName,
+          doctorName,
+          consultation.appointment.appointment_datetime,
+        );
+
+        // Create in-app notification
+        await this.notificationsService.createNotification(
+          patientProfile.user_id,
+          'NOTES_APPROVED',
+          'Consultation Notes Ready',
+          `Dr. ${doctorName} has approved your consultation notes from ${consultation.appointment.appointment_datetime.toLocaleDateString()}. View them in your Doctor Notes.`,
+          consultationId.toString(),
+        );
+      }
+    } catch (err) {
+      console.error('Failed to send notes approved notification:', err);
+    }
+
     // Audit log
     try {
       await this.auditService.log({
@@ -618,6 +655,59 @@ export class ConsultationsService {
       where: { action_item_id: actionItemId },
       data: updateData,
     });
+  }
+
+  async getMyConsultationNotes(userId: string) {
+    // First get the patient profile ID
+    const user = await prisma.user.findUnique({
+      where: { user_id: userId },
+      include: { patient_profile: true },
+    });
+
+    if (!user || !user.patient_profile) {
+      throw new ForbiddenException('Patient profile not found');
+    }
+
+    // Get patient's consultations with approved notes
+    const consultations = await prisma.consultation.findMany({
+      where: {
+        appointment: {
+          patient_id: user.patient_profile.patient_id,
+        },
+        notes_status: 'FINAL', // Only show approved/final notes
+      },
+      include: {
+        appointment: {
+          include: {
+            doctor: {
+              include: {
+                user: {
+                  select: {
+                    first_name: true,
+                    last_name: true,
+                    email: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        notes_approved_at: 'desc', // Most recent first
+      },
+    });
+
+    return consultations.map((consultation) => ({
+      consultation_id: consultation.consultation_id,
+      appointment_date: consultation.appointment.appointment_datetime,
+      doctor_name: `${consultation.appointment.doctor.user.first_name} ${consultation.appointment.doctor.user.last_name}`,
+      doctor_specialization: consultation.appointment.doctor.specialization,
+      AI_summary: consultation.AI_summary,
+      transcript: consultation.transcript,
+      notes_approved_at: consultation.notes_approved_at,
+      notes_status: consultation.notes_status,
+    }));
   }
 
   async deleteActionItem(userId: string, consultationId: number, actionItemId: number) {
