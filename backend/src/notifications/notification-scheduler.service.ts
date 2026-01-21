@@ -118,7 +118,7 @@ export class NotificationSchedulerService {
       appointmentTime.getTime() - reminderTimeMinutes * 60 * 1000,
     );
 
-    // Check if we should send the reminder now (within a 15-minute window)
+    // check if we should send the reminder now (within a 15-minute window)
     const timeDiff = reminderTime.getTime() - now.getTime();
     const withinWindow = timeDiff >= 0 && timeDiff <= 15 * 60 * 1000; // 15-minute window
 
@@ -126,7 +126,7 @@ export class NotificationSchedulerService {
       return;
     }
 
-    // Check if reminder was already sent for this time
+    // check if reminder was already sent for this time
     const reminderKey = `reminder_${appointment.appointment_id}_${reminderTimeMinutes}`;
     const existingNotification = await this.prisma.notification.findFirst({
       where: {
@@ -143,7 +143,7 @@ export class NotificationSchedulerService {
       return; // Already sent
     }
 
-    // Determine the other person (doctor or patient)
+    //Determine the other person (doctor or patient)
     const isPatient = !!user.patient_profile;
     const otherPerson = isPatient
       ? appointment.doctor.user
@@ -158,7 +158,7 @@ export class NotificationSchedulerService {
           ? `${Math.floor(reminderTimeMinutes / 60)} hour${Math.floor(reminderTimeMinutes / 60) > 1 ? 's' : ''}`
           : `${reminderTimeMinutes} minute${reminderTimeMinutes > 1 ? 's' : ''}`;
 
-    // Send in-app notification
+    //Send in-app notification
     if (preferences.in_app_enabled && preferences.in_app_appointments) {
       await this.notificationsService.createNotification(
         user.user_id,
@@ -169,7 +169,7 @@ export class NotificationSchedulerService {
       );
     }
 
-    // Send email notification
+    //Send email notification
     if (preferences.email_enabled && preferences.email_appointments) {
       await this.emailService.sendAppointmentReminderNotification(
         user.user_id,
@@ -181,10 +181,6 @@ export class NotificationSchedulerService {
       );
     }
 
-    // TODO: Send push notification
-    // if (preferences.push_enabled && preferences.push_appointments) {
-    //   await this.pushNotificationService.sendAppointmentReminder(...);
-    // }
 
     this.logger.log(
       `Sent ${timeBeforeText} reminder for appointment ${appointment.appointment_id} to user ${user.user_id}`,
