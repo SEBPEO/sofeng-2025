@@ -337,10 +337,11 @@ export const AccountManagement = () => {
               {requests.exportRequests.length === 0 && <div className={styles.muted}>(none)</div>}
               {requests.exportRequests.length > 0 && (
                 <>
-                  {requests.exportRequests.slice(0, showAllExports ? undefined : 5).map((r) => (
+                  {requests.exportRequests.slice(0, showAllExports ? undefined : 5).map((r, i) => (
                     <div key={`export-${r.request_id}`} className={styles.requestRow}>
                       <span>
-                        #{r.request_id} • {new Date(r.requested_at).toLocaleString()}
+                        #{requests.exportRequests.length - i} •{' '}
+                        {new Date(r.requested_at).toLocaleString()}
                       </span>
                     </div>
                   ))}
