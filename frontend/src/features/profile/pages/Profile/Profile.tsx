@@ -10,6 +10,7 @@ import {
   PatientInfoSection,
   AvailabilitySection,
 } from '../../components';
+import { AccountManagement } from '../../components/AccountManagement';
 import styles from './Profile.module.css';
 
 type ProfileFormData = {
@@ -63,18 +64,30 @@ export const Profile = () => {
 
   // Onboarding completion checks
   const roleChosen = !!selectedRole;
-  const doctorReq = selectedRole === 'doctor' ? !!watch('specialization') && !!watch('clinic_address') : true;
-  const patientReq = selectedRole === 'patient' ? !!watch('date_of_birth') && !!watch('emergency_contact') : true;
+  const doctorReq =
+    selectedRole === 'doctor' ? !!watch('specialization') && !!watch('clinic_address') : true;
+  const patientReq =
+    selectedRole === 'patient' ? !!watch('date_of_birth') && !!watch('emergency_contact') : true;
   const summaryReq = !!(watch('conditions') || watch('medications') || watch('allergy'));
   const consentReq = watch('consent_data_storage') && watch('consent_share_notes');
   const steps = [
     { label: 'Choose your role', done: roleChosen },
-    { label: selectedRole === 'doctor' ? 'Add specialization & clinic address' : 'Add date of birth & emergency contact', done: selectedRole === 'doctor' ? doctorReq : patientReq },
+    {
+      label:
+        selectedRole === 'doctor'
+          ? 'Add specialization & clinic address'
+          : 'Add date of birth & emergency contact',
+      done: selectedRole === 'doctor' ? doctorReq : patientReq,
+    },
     // Only show medical summary step for patients
-    ...(selectedRole === 'patient' ? [{
-      label: 'Add a quick medical summary (conditions/meds/allergies)',
-      done: summaryReq
-    }] : []),
+    ...(selectedRole === 'patient'
+      ? [
+          {
+            label: 'Add a quick medical summary (conditions/meds/allergies)',
+            done: summaryReq,
+          },
+        ]
+      : []),
     { label: 'Confirm consent preferences', done: consentReq },
   ];
   const onboardingComplete = steps.every((s) => s.done);
@@ -210,9 +223,7 @@ export const Profile = () => {
               : `Finish setup (${remainingCount} step${remainingCount === 1 ? '' : 's'} left)`}
           </div>
           <h1 className={styles.title}>Complete Your Profile</h1>
-          <p className={styles.subtitle}>
-            A few quick steps to get you ready.
-          </p>
+          <p className={styles.subtitle}>A few quick steps to get you ready.</p>
         </div>
 
         <div className={styles.onboardingPanel}>
@@ -260,14 +271,18 @@ export const Profile = () => {
               <input type="checkbox" {...register('consent_data_storage', { required: true })} />
               <div>
                 <div className={styles.checkboxLabel}>Store my data securely</div>
-                <div className={styles.checkboxText}>Allows us to keep your profile and medical summary accessible for care.</div>
+                <div className={styles.checkboxText}>
+                  Allows us to keep your profile and medical summary accessible for care.
+                </div>
               </div>
             </label>
             <label className={styles.checkboxRow}>
               <input type="checkbox" {...register('consent_share_notes', { required: true })} />
               <div>
                 <div className={styles.checkboxLabel}>Share anonymized notes with my care team</div>
-                <div className={styles.checkboxText}>Enables collaboration between assigned doctors for better outcomes.</div>
+                <div className={styles.checkboxText}>
+                  Enables collaboration between assigned doctors for better outcomes.
+                </div>
               </div>
             </label>
           </section>
@@ -282,6 +297,9 @@ export const Profile = () => {
 
         {/* Availability Section for Doctors */}
         {doctorId && <AvailabilitySection doctorId={doctorId} />}
+
+        {/* Account Management Section for Doctors */}
+        {doctorId && <AccountManagement />}
       </div>
 
       {showCongrats && (

@@ -25,7 +25,8 @@ model User{
     notifications       Notification[]
     notificationPreferences NotificationPreferences?
     auditLogs           AuditLog[]
-    
+        deletionRequests    AccountDeletionRequest[]
+        dataExportRequests  DataExportRequest[]
 }
 
 model Chat{
@@ -325,4 +326,42 @@ enum AuditAction {
     // System Events
     SYSTEM_ERROR
     SECURITY_ALERT
+}
+
+model AccountDeletionRequest {
+    request_id          Int         @id @default(autoincrement())
+    user_id             String
+    reason              String?     @db.Text
+    status              RequestStatus @default(PENDING)
+    requested_at        DateTime    @default(now())
+    processed_at        DateTime?
+    processed_by        String?
+    
+    user                User        @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+    
+    @@index([user_id])
+    @@index([status])
+}
+
+model DataExportRequest {
+    request_id          Int         @id @default(autoincrement())
+    user_id             String
+    status              RequestStatus @default(PENDING)
+    requested_at        DateTime    @default(now())
+    completed_at        DateTime?
+    export_file_path    String?     @db.VarChar(500)
+    expires_at          DateTime?
+    
+    user                User        @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+    
+    @@index([user_id])
+    @@index([status])
+}
+
+enum RequestStatus {
+    PENDING
+    PROCESSING
+    COMPLETED
+    REJECTED
+    CANCELLED
 }

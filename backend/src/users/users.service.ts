@@ -1,6 +1,11 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UserResponseDto } from './dto/user-response.dto';
+import {
+  RequestAccountDeletionDto,
+  AccountDeletionRequestResponseDto,
+} from './dto/request-account-deletion.dto';
+import { DataExportResponseDto, UserDataExportDto } from './dto/data-export.dto';
 import { PrismaService } from '../prisma/prisma.service';
 
 export type User = {
@@ -273,6 +278,355 @@ export class UsersService {
       this.logger.error('Failed to upsert google user', err as any);
       throw err;
     }
+  }
+
+  async requestAccountDeletion(
+    userId: string,
+    dto: RequestAccountDeletionDto,
+  ): Promise<AccountDeletionRequestResponseDto> {
+    // Check if user exists
+    const user = await this.prisma.user.findUnique({
+      where: { user_id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Check if there's already a pending request
+    const existingRequest = await this.prisma.accountDeletionRequest.findFirst({
+      where: {
+        user_id: userId,
+        status: 'PENDING',
+      },
+    });
+
+    if (existingRequest) {
+      throw new BadRequestException('You already have a pending deletion request');
+    }
+
+    // Create deletion request
+    const request = await this.prisma.accountDeletionRequest.create({
+      data: {
+        user_id: userId,
+        reason: dto.reason,
+      },
+    });
+
+    this.logger.log(`Account deletion requested by user ${userId}`);
+
+    return {
+      request_id: request.request_id,
+      status: request.status,
+      requested_at: request.requested_at,
+      message:
+        'Your account deletion request has been submitted. You will receive a confirmation email once processed.',
+    };
+  }
+
+  async requestDataExport(userId: string): Promise<DataExportResponseDto> {
+    // Check if user exists
+    const user = await this.prisma.user.findUnique({
+      where: { user_id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Create export request (auto-completed for audit trail)
+    const request = await this.prisma.dataExportRequest.create({
+      data: {
+        user_id: userId,
+        status: 'COMPLETED',
+        completed_at: new Date(),
+      },
+    });
+
+    this.logger.log(`Data export completed for user ${userId}`);
+
+    return {
+      request_id: request.request_id,
+      status: request.status,
+      requested_at: request.requested_at,
+      message:
+        'Your data export request has been submitted. You will receive a download link via email once ready.',
+    };
+  }
+
+  async exportUserData(userId: string): Promise<UserDataExportDto> {
+    // Get user with all related data
+    const user = await this.prisma.user.findUnique({
+      where: { user_id: userId },
+      include: {
+        doctor_profile: true,
+        patient_profile: true,
+        notifications: true,
+        sentMessages: {
+          select: {
+            message_id: true,
+            receiver_id: true,
+            content: true,
+            sent_at: true,
+            read_at: true,
+          },
+        },
+        receivedMessages: {
+          select: {
+            message_id: true,
+            sender_id: true,
+            content: true,
+            sent_at: true,
+            read_at: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Get appointments (either as doctor or patient)
+    const appointments: any[] = [];
+    if (user.doctor_profile) {
+      const doctorAppointments = await this.prisma.appointment.findMany({
+        where: { doctor_id: user.doctor_profile.doctor_id },
+        include: {
+          patient: {
+            include: {
+              user: {
+                select: {
+                  first_name: true,
+                  last_name: true,
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      });
+      appointments.push(...doctorAppointments);
+    } else if (user.patient_profile) {
+      const patientAppointments = await this.prisma.appointment.findMany({
+        where: { patient_id: user.patient_profile.patient_id },
+        include: {
+          doctor: {
+            include: {
+              user: {
+                select: {
+                  first_name: true,
+                  last_name: true,
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      });
+      appointments.push(...patientAppointments);
+    }
+
+    // Get consultations
+    const consultations: any[] = [];
+    if (user.doctor_profile) {
+      const doctorAppointments = await this.prisma.appointment.findMany({
+        where: { doctor_id: user.doctor_profile.doctor_id },
+        select: { appointment_id: true },
+      });
+      const doctorConsultations = await this.prisma.consultation.findMany({
+        where: {
+          appointment_id: {
+            in: doctorAppointments.map((a) => a.appointment_id),
+          },
+        },
+      });
+      consultations.push(...doctorConsultations);
+    } else if (user.patient_profile) {
+      const patientAppointments = await this.prisma.appointment.findMany({
+        where: { patient_id: user.patient_profile.patient_id },
+        select: { appointment_id: true },
+      });
+      const patientConsultations = await this.prisma.consultation.findMany({
+        where: {
+          appointment_id: {
+            in: patientAppointments.map((a) => a.appointment_id),
+          },
+        },
+      });
+      consultations.push(...patientConsultations);
+    }
+
+    return {
+      user: {
+        user_id: user.user_id,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        email: user.email,
+        gender: user.gender,
+        role: user.role,
+        createdAt: user.createdAt,
+        lastLogin: user.lastLogin,
+      },
+      profile: user.doctor_profile || user.patient_profile || null,
+      appointments,
+      consultations,
+      messages: [...user.sentMessages, ...user.receivedMessages],
+      notifications: user.notifications,
+      exportedAt: new Date(),
+    };
+  }
+
+  async getMyPrivacyRequests(userId: string) {
+    const [deletionRequests, exportRequests] = await Promise.all([
+      this.prisma.accountDeletionRequest.findMany({
+        where: { user_id: userId },
+        orderBy: { requested_at: 'desc' },
+      }),
+      this.prisma.dataExportRequest.findMany({
+        where: { user_id: userId },
+        orderBy: { requested_at: 'desc' },
+      }),
+    ]);
+
+    return { deletionRequests, exportRequests };
+  }
+
+  async cancelDeletionRequest(userId: string, requestId: number) {
+    const req = await this.prisma.accountDeletionRequest.findUnique({
+      where: { request_id: requestId },
+    });
+    if (!req || req.user_id !== userId) {
+      throw new NotFoundException('Deletion request not found');
+    }
+    if (req.status !== 'PENDING') {
+      throw new BadRequestException('Only pending requests can be cancelled');
+    }
+    const updated = await this.prisma.accountDeletionRequest.update({
+      where: { request_id: requestId },
+      data: { status: 'CANCELLED', processed_at: new Date(), processed_by: userId },
+    });
+    return { success: true, request: updated };
+  }
+
+  async cancelExportRequest(userId: string, requestId: number) {
+    const req = await this.prisma.dataExportRequest.findUnique({
+      where: { request_id: requestId },
+    });
+    if (!req || req.user_id !== userId) {
+      throw new NotFoundException('Export request not found');
+    }
+    if (req.status !== 'PENDING' && req.status !== 'PROCESSING') {
+      throw new BadRequestException('Only pending/processing requests can be cancelled');
+    }
+    const updated = await this.prisma.dataExportRequest.update({
+      where: { request_id: requestId },
+      data: { status: 'CANCELLED', completed_at: new Date() },
+    });
+    return { success: true, request: updated };
+  }
+
+  async approveDeletionRequest(userId: string, requestId: number) {
+    const request = await this.prisma.accountDeletionRequest.findUnique({
+      where: { request_id: requestId },
+    });
+    if (!request || request.user_id !== userId) {
+      throw new NotFoundException('Deletion request not found');
+    }
+    if (request.status !== 'PENDING') {
+      throw new BadRequestException('Can only approve pending requests');
+    }
+    // Mark as completed
+    await this.prisma.accountDeletionRequest.update({
+      where: { request_id: requestId },
+      data: { status: 'COMPLETED', processed_at: new Date(), processed_by: userId },
+    });
+
+    // Get doctor and patient IDs for this user
+    const doctor = await this.prisma.doctorProfile.findUnique({ where: { user_id: userId } });
+    const patient = await this.prisma.patientProfile.findUnique({ where: { user_id: userId } });
+
+    // Delete in reverse order of foreign keys
+    await this.prisma.notification.deleteMany({ where: { user_id: userId } });
+    await this.prisma.chat.deleteMany({
+      where: { OR: [{ sender_id: userId }, { receiver_id: userId }] },
+    });
+
+    // Delete consultation-related data
+    if (doctor) {
+      const consultationIds = (
+        await this.prisma.consultation.findMany({
+          where: { appointment: { doctor_id: doctor.doctor_id } },
+          select: { consultation_id: true },
+        })
+      ).map((c) => c.consultation_id);
+
+      await this.prisma.consultationActionItem.deleteMany({
+        where: { consultation_id: { in: consultationIds } },
+      });
+      await this.prisma.consultationRecording.deleteMany({
+        where: { consultation_id: { in: consultationIds } },
+      });
+      await this.prisma.sharedConsultationNote.deleteMany({
+        where: { consultation_id: { in: consultationIds } },
+      });
+      await this.prisma.consultation.deleteMany({
+        where: { consultation_id: { in: consultationIds } },
+      });
+      await this.prisma.appointment.deleteMany({ where: { doctor_id: doctor.doctor_id } });
+      await this.prisma.availability.deleteMany({ where: { doctor_id: doctor.doctor_id } });
+    }
+
+    if (patient) {
+      const consultationIds = (
+        await this.prisma.consultation.findMany({
+          where: { appointment: { patient_id: patient.patient_id } },
+          select: { consultation_id: true },
+        })
+      ).map((c) => c.consultation_id);
+
+      await this.prisma.consultationActionItem.deleteMany({
+        where: { consultation_id: { in: consultationIds } },
+      });
+      await this.prisma.consultationRecording.deleteMany({
+        where: { consultation_id: { in: consultationIds } },
+      });
+      await this.prisma.sharedConsultationNote.deleteMany({
+        where: { consultation_id: { in: consultationIds } },
+      });
+      await this.prisma.consultation.deleteMany({
+        where: { consultation_id: { in: consultationIds } },
+      });
+      await this.prisma.appointment.deleteMany({ where: { patient_id: patient.patient_id } });
+    }
+
+    await this.prisma.notificationPreferences.deleteMany({ where: { user_id: userId } });
+    await this.prisma.accountDeletionRequest.deleteMany({ where: { user_id: userId } });
+    await this.prisma.dataExportRequest.deleteMany({ where: { user_id: userId } });
+    await this.prisma.doctorProfile.deleteMany({ where: { user_id: userId } });
+    await this.prisma.patientProfile.deleteMany({ where: { user_id: userId } });
+    await this.prisma.user.delete({ where: { user_id: userId } });
+    return { success: true, message: 'Account deleted successfully' };
+  }
+
+  async approveExportRequest(userId: string, requestId: number) {
+    const request = await this.prisma.dataExportRequest.findUnique({
+      where: { request_id: requestId },
+    });
+    if (!request || request.user_id !== userId) {
+      throw new NotFoundException('Export request not found');
+    }
+    if (request.status !== 'PENDING') {
+      throw new BadRequestException('Can only approve pending requests');
+    }
+    await this.prisma.dataExportRequest.update({
+      where: { request_id: requestId },
+      data: { status: 'COMPLETED', completed_at: new Date() },
+    });
+    return {
+      success: true,
+      message: 'Export completed. Download your data from the Export section.',
+    };
   }
 }
 
