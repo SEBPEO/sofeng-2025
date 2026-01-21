@@ -337,14 +337,18 @@ export const AccountManagement = () => {
               {requests.exportRequests.length === 0 && <div className={styles.muted}>(none)</div>}
               {requests.exportRequests.length > 0 && (
                 <>
-                  {requests.exportRequests.slice(0, showAllExports ? undefined : 5).map((r, i) => (
-                    <div key={`export-${r.request_id}`} className={styles.requestRow}>
-                      <span>
-                        #{requests.exportRequests.length - i} •{' '}
-                        {new Date(r.requested_at).toLocaleString()}
-                      </span>
-                    </div>
-                  ))}
+                  {requests.exportRequests
+                    .slice()
+                    .reverse()
+                    .slice(0, showAllExports ? undefined : 5)
+                    .map((r, i) => (
+                      <div key={`export-${r.request_id}`} className={styles.requestRow}>
+                        <span>
+                          #{i + 1} •{' '}
+                          {new Date(r.requested_at).toLocaleString()}
+                        </span>
+                      </div>
+                    ))}
                   {requests.exportRequests.length > 5 && (
                     <button
                       className={styles.toggleButton}
@@ -362,31 +366,49 @@ export const AccountManagement = () => {
             <div style={{ marginTop: '0.75rem' }}>
               <strong>Account Deletion</strong>
               {requests.deletionRequests.length === 0 && <div className={styles.muted}>(none)</div>}
-              {requests.deletionRequests.slice(0, 5).map((r) => (
-                <div key={`del-${r.request_id}`} className={styles.requestRow}>
-                  <span>
-                    #{r.request_id} • {r.status} • {new Date(r.requested_at).toLocaleString()}
-                  </span>
-                  {r.status === 'PENDING' && (
-                    <div className={styles.requestActions}>
-                      <button
-                        className={styles.dangerButton}
-                        onClick={() => approveDeletion(r.request_id)}
-                        disabled={isLoading}
-                      >
-                        Approve & Delete
-                      </button>
-                      <button
-                        className={styles.secondaryButton}
-                        onClick={() => cancelDeletion(r.request_id)}
-                        disabled={isLoading}
-                      >
-                        Cancel
-                      </button>
-                    </div>
+              {requests.deletionRequests.length > 0 && (
+                <>
+                  {requests.deletionRequests
+                    .slice()
+                    .reverse()
+                    .slice(0, showAllExports ? undefined : 5)
+                    .map((r, i) => (
+                      <div key={`del-${r.request_id}`} className={styles.requestRow}>
+                        <span>
+                          #{i + 1} • {r.status} • {new Date(r.requested_at).toLocaleString()}
+                        </span>
+                        {r.status === 'PENDING' && (
+                          <div className={styles.requestActions}>
+                            <button
+                              className={styles.dangerButton}
+                              onClick={() => approveDeletion(r.request_id)}
+                              disabled={isLoading}
+                            >
+                              Approve & Delete
+                            </button>
+                            <button
+                              className={styles.secondaryButton}
+                              onClick={() => cancelDeletion(r.request_id)}
+                              disabled={isLoading}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  {requests.deletionRequests.length > 5 && (
+                    <button
+                      className={styles.toggleButton}
+                      onClick={() => setShowAllExports(!showAllExports)}
+                    >
+                      {showAllExports
+                        ? `▲ Show less`
+                        : `▼ Show all (${requests.deletionRequests.length})`}
+                    </button>
                   )}
-                </div>
-              ))}
+                </>
+              )}
             </div>
           </div>
           <div className={styles.optionActions}>

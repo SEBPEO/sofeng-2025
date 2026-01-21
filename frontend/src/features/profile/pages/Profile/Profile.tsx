@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { getUserByJwt, updateUserProfile, type UpdateProfilePayload } from '@/store/user/userApi';
+import { useAppDispatch } from '@/store/hooks';
 import { Button } from '@/components';
 import {
   PersonalInfoSection,
@@ -37,6 +38,7 @@ type ProfileFormData = {
 
 export const Profile = () => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -193,10 +195,22 @@ export const Profile = () => {
         }),
       );
 
+      // Refresh user in Redux store and wait for it to complete
+      const getUserByJwtThunk = (await import('@/store/user/userSlice')).getUserByJwtThunk;
+      const result = await dispatch(getUserByJwtThunk() as any);
+      
+      // Check if the thunk succeeded
+      if (!result.payload) {
+        throw new Error('Failed to load updated user data');
+      }
+
+      // Only show congratulations and navigate after successful Redux update
       if (onboardingComplete) {
         setShowCongrats(true);
       }
-      navigate('/dashboard', { replace: true });
+      
+      const target = roleToUse === 'doctor' ? '/patients' : '/my-doctor';
+      navigate(target, { replace: true });
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to update profile');
       console.error(err);
@@ -317,3 +331,4 @@ export const Profile = () => {
 };
 
 export default Profile;
+

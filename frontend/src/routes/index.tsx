@@ -57,6 +57,19 @@ const Root = () => {
   }
 };
 
+// Role-aware route wrappers
+const MyPatientsRoute = () => {
+  const currentUser = useAppSelector((s) => s.users.current);
+  if (currentUser?.role === 'patient') return <Navigate to="/my-doctor" replace />;
+  return <patients.pages.MyPatients />;
+};
+
+const MyDoctorRoute = () => {
+  const currentUser = useAppSelector((s) => s.users.current);
+  if (currentUser?.role === 'doctor') return <Navigate to="/patients" replace />;
+  return <patients.pages.MyDoctor />;
+};
+
 const router = createBrowserRouter([
   { path: '/', element: <Root /> },
   {
@@ -71,9 +84,9 @@ const router = createBrowserRouter([
         path: '/consultations/:appointmentId',
         element: <consultations.pages.ConsultationSession />,
       },
-      { path: '/patients', element: <patients.pages.MyPatients /> },
+      { path: '/patients', element: <MyPatientsRoute /> },
       { path: '/available-patients', element: <patients.pages.AllPatients /> },
-      { path: '/my-doctor', element: <patients.pages.MyDoctor /> },
+      { path: '/my-doctor', element: <MyDoctorRoute /> },
       { path: '/doctor-notes', element: <patients.pages.DoctorNotes /> },
       { path: '/messages', element: <chat.pages.Messages /> },
       { path: '/shared-notes', element: <consultations.pages.SharedNotes /> },
