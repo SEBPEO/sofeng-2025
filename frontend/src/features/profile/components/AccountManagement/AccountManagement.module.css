@@ -1,0 +1,320 @@
+.container {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%);
+  border-radius: 12px;
+  margin-top: 2rem;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 0.5rem 0;
+}
+
+.subtitle {
+  color: #666;
+  margin: 0 0 1.5rem 0;
+  font-size: 0.95rem;
+}
+
+.section {
+  margin-bottom: 1.5rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.optionCard {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+  &:hover {
+    border-color: #17b5a3;
+    box-shadow: 0 4px 12px rgba(23, 181, 163, 0.1);
+  }
+}
+
+.optionContent {
+  flex: 1;
+}
+
+.optionTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 0.5rem 0;
+}
+
+.optionDescription {
+  color: #666;
+  font-size: 0.95rem;
+  margin: 0 0 1rem 0;
+  line-height: 1.5;
+}
+
+.statusBadge {
+  display: inline-block;
+  background: #f0f9f8;
+  color: #17b5a3;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+
+  strong {
+    font-weight: 600;
+  }
+}
+
+.optionActions {
+  display: flex;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.requestRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px dashed #eee;
+}
+
+.requestActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.requestActions button {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+}
+
+.muted {
+  color: #999;
+  font-size: 0.9rem;
+  padding: 0.25rem 0;
+}
+
+.toggleButton {
+  background: transparent;
+  border: none;
+  color: #17b5a3;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  margin-top: 0.25rem;
+  text-decoration: underline;
+
+  &:hover {
+    color: #149688;
+  }
+}
+
+.primaryButton,
+.secondaryButton,
+.dangerButton,
+.confirmButton,
+.cancelButton {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.primaryButton {
+  background: #17b5a3;
+  color: white;
+
+  &:hover:not(:disabled) {
+    background: #149688;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(23, 181, 163, 0.3);
+  }
+}
+
+.secondaryButton {
+  background: #f5f5f5;
+  color: #1a1a1a;
+  border: 1px solid #ddd;
+
+  &:hover:not(:disabled) {
+    background: #eee;
+    border-color: #17b5a3;
+    color: #17b5a3;
+  }
+}
+
+.dangerButton {
+  background: #dc3545;
+  color: white;
+
+  &:hover:not(:disabled) {
+    background: #bb2d3b;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(220, 53, 69, 0.3);
+  }
+}
+
+.confirmButton {
+  background: #17b5a3;
+  color: white;
+  flex: 1;
+
+  &:hover:not(:disabled) {
+    background: #149688;
+  }
+}
+
+.dangerButton {
+  background: #dc3545;
+
+  &:hover:not(:disabled) {
+    background: #bb2d3b;
+  }
+}
+
+.cancelButton {
+  background: #f5f5f5;
+  color: #1a1a1a;
+  border: 1px solid #ddd;
+  flex: 1;
+
+  &:hover:not(:disabled) {
+    background: #eee;
+  }
+}
+
+.alert {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+
+  &.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+
+  &.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modalTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 1rem 0;
+}
+
+.modalMessage {
+  color: #666;
+  margin: 0 0 1.5rem 0;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.reasonInput {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  resize: vertical;
+  min-height: 100px;
+  margin-bottom: 1.5rem;
+  color: #1a1a1a;
+
+  &:focus {
+    outline: none;
+    border-color: #17b5a3;
+    box-shadow: 0 0 0 3px rgba(23, 181, 163, 0.1);
+  }
+}
+
+.modalActions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+  .optionCard {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .optionActions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .primaryButton,
+  .secondaryButton,
+  .confirmButton,
+  .cancelButton {
+    width: 100%;
+  }
+
+  .container {
+    padding: 1rem;
+  }
+}
