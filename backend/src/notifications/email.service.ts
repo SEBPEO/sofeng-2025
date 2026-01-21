@@ -12,8 +12,6 @@ export class EmailService {
   ) {}
 
   async sendEmail(to: string, subject: string, htmlContent: string) {
-    // TODO: Integrate with actual email service (e.g., SendGrid, AWS SES, Nodemailer)
-    // For now, just log the email
     this.logger.log(`
       Email would be sent to: ${to}
       Subject: ${subject}

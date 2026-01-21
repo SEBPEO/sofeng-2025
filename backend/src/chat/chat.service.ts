@@ -354,10 +354,10 @@ export class ChatService {
     const receiverId = message.receiver_id;
     const receiverEmail = message.receiver.email;
 
-    // Get receiver's notification preferences
+    // notif preference
     const preferences = await this.notificationPreferencesService.getPreferences(receiverId);
 
-    // Create in-app notification if enabled
+    // in-app notification
     if (preferences.in_app_enabled && preferences.in_app_messages) {
       await this.notificationsService.createNotification(
         receiverId,
@@ -368,7 +368,7 @@ export class ChatService {
       );
     }
 
-    // Count unread messages from this sender
+    
     const unreadCount = await this.prisma.chat.count({
       where: {
         sender_id: message.sender_id,
@@ -377,7 +377,7 @@ export class ChatService {
       },
     });
 
-    // Send email notification if enabled
+    // email notif
     if (preferences.email_enabled && preferences.email_unread_messages) {
       await this.emailService.sendUnreadMessageNotification(
         receiverId,
@@ -387,9 +387,6 @@ export class ChatService {
       );
     }
 
-    // TODO: Send push notification if enabled
-    // if (preferences.push_enabled && preferences.push_messages) {
-    //   await this.pushNotificationService.sendMessageNotification(...);
-    // }
+    
   }
 }
