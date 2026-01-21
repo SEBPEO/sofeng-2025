@@ -125,19 +125,16 @@ export const AccountManagement = () => {
     setIsLoading(true);
     try {
       const api = await import('@/store/user/userApi');
-      const result = await api.approveDeletionRequest(id);
-      setMessage({
-        type: 'success',
-        text: result.message || 'Account deletion approved and completed.',
-      });
-      // User will be logged out soon
-      setTimeout(() => (window.location.href = '/login'), 2000);
+      await api.approveDeletionRequest(id);
+
+      // Clear auth token and redirect immediately to login page
+      localStorage.removeItem('token');
+      window.location.href = '/login';
     } catch (e: any) {
       setMessage({
         type: 'error',
         text: e?.response?.data?.message || 'Failed to approve deletion',
       });
-    } finally {
       setIsLoading(false);
     }
   };
@@ -344,8 +341,7 @@ export const AccountManagement = () => {
                     .map((r, i) => (
                       <div key={`export-${r.request_id}`} className={styles.requestRow}>
                         <span>
-                          #{i + 1} •{' '}
-                          {new Date(r.requested_at).toLocaleString()}
+                          #{i + 1} • {new Date(r.requested_at).toLocaleString()}
                         </span>
                       </div>
                     ))}
