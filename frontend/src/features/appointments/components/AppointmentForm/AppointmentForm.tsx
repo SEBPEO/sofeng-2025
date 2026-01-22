@@ -115,23 +115,23 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
 
   // Initialize date from initialData if rescheduling
   useEffect(() => {
-    if (isReschedule && initialData?.appointment_datetime && selectedDoctorId) {
-      const date = new Date(initialData.appointment_datetime);
-      const dateStr = date.toISOString().split('T')[0];
-      setSelectedDate(dateStr);
-      handleDateChange(date.toISOString());
+    if (isReschedule && initialData?.appointment_datetime) {
+      // For reschedule, don't auto-load slots - let user choose a new date first
+      setSelectedDate('');
+      setAvailableSlots([]);
+      setSelectedSlot(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isReschedule, initialData?.appointment_datetime, selectedDoctorId]);
+  }, [isReschedule, initialData?.appointment_datetime]);
 
   const onFormSubmit = async (data: AppointmentFormData) => {
     if (!isReschedule && !data.doctor_id) {
       return;
     }
 
-    // If we have a selected slot (for new appointments), use its start_time as ISO string
+    // If we have a selected slot, use its start_time as ISO string
     let appointmentDateTime = data.appointment_datetime;
-    if (!isReschedule && selectedSlot) {
+    if (selectedSlot) {
       appointmentDateTime = selectedSlot.start_time;
     } else if (appointmentDateTime) {
       // Convert datetime-local to ISO string
@@ -176,7 +176,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
         </div>
       )}
 
-      {selectedDoctorId && selectedDate && (
+      {selectedDoctorId && selectedDate && !isReschedule && (
         <div className={styles.section}>
           <label className={styles.label}>Select Time Slot *</label>
           <SlotSelector
@@ -217,26 +217,37 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
               </span>
             </div>
           )}
-          {/* Error message removed - UI already shows "No available slots" when needed */}
         </div>
       )}
 
       {isReschedule && (
         <div className={styles.section}>
           <DateTimePicker
-            label="Date & Time *"
-            value={watch('appointment_datetime')}
-            onChange={(value) => {
-              setValue('appointment_datetime', value, { shouldValidate: true });
-            }}
+            label="Select Date *"
+            value={selectedDate ? `${selectedDate}T09:00` : ''}
+            onChange={(value) => handleDateChange(value)}
             minDate={new Date()}
-            error={errors.appointment_datetime?.message}
+            placeholder="Select a new date for your appointment"
+            showTime={false}
+          />
+        </div>
+      )}
+
+      {isReschedule && selectedDate && (
+        <div className={styles.section}>
+          <label className={styles.label}>Select Time Slot *</label>
+          <SlotSelector
+            slots={availableSlots}
+            selectedSlot={selectedSlot}
+            onSelect={handleSlotSelect}
+            loading={loadingSlots}
+            error={slotsError || undefined}
           />
           <input
             type="hidden"
             {...register('appointment_datetime', {
-              required: 'Appointment date and time is required',
               validate: (value) => {
+                if (!value || !selectedSlot) return true;
                 const selectedDate = new Date(value);
                 const now = new Date();
                 if (selectedDate <= now) {
@@ -246,10 +257,27 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
               },
             })}
           />
+          {selectedSlot && (
+            <div className={styles.selectedSlotInfo}>
+              <span className={styles.selectedSlotLabel}>Selected:</span>
+              <span className={styles.selectedSlotTime}>
+                {new Date(selectedSlot.start_time).toLocaleString('en-US', {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric',
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  hour12: true,
+                })}
+                {' - '}
+                {selectedSlot.duration_minutes} minutes
+              </span>
+            </div>
+          )}
         </div>
       )}
 
-      {isReschedule && (
+      {isReschedule && selectedSlot && (
         <div className={styles.section}>
           <label htmlFor="duration_minutes" className={styles.label}>
             Duration (minutes) *
@@ -258,16 +286,23 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
             id="duration_minutes"
             type="number"
             min="15"
-            max="240"
+            max={selectedSlot?.duration_minutes || 240}
             step="15"
+            disabled={true}
             {...register('duration_minutes', {
               required: 'Duration is required',
               min: { value: 15, message: 'Minimum duration is 15 minutes' },
-              max: { value: 240, message: 'Maximum duration is 240 minutes' },
+              max: {
+                value: selectedSlot?.duration_minutes || 240,
+                message: 'Duration exceeds slot availability',
+              },
               valueAsNumber: true,
             })}
             className={styles.input}
           />
+          <p className={styles.helperText}>
+            Duration is {selectedSlot?.duration_minutes} minutes (as per the available slot)
+          </p>
           {errors.duration_minutes && (
             <span className={styles.errorText}>{errors.duration_minutes.message}</span>
           )}
@@ -316,7 +351,12 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
         )}
         <Button
           type="submit"
-          disabled={isSubmitting || !selectedDoctorId || (!isReschedule && !selectedSlot)}
+          disabled={
+            isSubmitting ||
+            !selectedDoctorId ||
+            (!isReschedule && !selectedSlot) ||
+            (isReschedule && !selectedSlot)
+          }
         >
           {isSubmitting ? 'Saving...' : submitLabel}
         </Button>
