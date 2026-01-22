@@ -24,7 +24,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -43,12 +44,20 @@
   margin-bottom: var(--space-xl);
 }
 
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-lg);
+  gap: var(--space-md);
+}
+
 .sectionTitle {
   font-size: 1.375rem;
   font-weight: 600;
-  margin-bottom: var(--space-lg);
   color: var(--color-text);
   letter-spacing: -0.01em;
+  margin: 0;
   display: flex;
   align-items: center;
   gap: var(--space-sm);
@@ -58,11 +67,31 @@
   content: '';
   flex: 1;
   height: 1px;
-  background: linear-gradient(
-    to right,
-    rgba(23, 181, 163, 0.3),
-    transparent
-  );
+  background: linear-gradient(to right, rgba(23, 181, 163, 0.3), transparent);
+}
+
+.toggleButton {
+  padding: var(--space-sm) var(--space-md);
+  background: rgba(23, 181, 163, 0.08);
+  border: 1px solid rgba(23, 181, 163, 0.2);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.toggleButton:hover {
+  background: rgba(23, 181, 163, 0.12);
+  border-color: rgba(23, 181, 163, 0.3);
+  color: var(--color-primary-700);
+}
+
+.toggleButton:active {
+  transform: scale(0.98);
 }
 
 .appointmentsGrid {
@@ -216,4 +245,3 @@
   font-size: 0.9rem;
   flex: 1;
 }
-

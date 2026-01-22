@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { Appointment } from '@/store/appointments/appointmentsApi';
 import { Button } from '@/components';
 import { useAppSelector } from '@/store/hooks';
@@ -23,6 +23,22 @@ export const AppointmentList: React.FC<AppointmentListProps> = ({
   const navigate = useNavigate();
   const currentUser = useAppSelector((state) => state.users?.current);
   const isDoctor = currentUser?.role === 'doctor';
+  
+  // State for collapsible sections
+  const [expandedSections, setExpandedSections] = useState<{
+    [key: string]: boolean;
+  }>({
+    scheduled: true,
+    completed: true,
+    cancelled: true,
+  });
+
+  const toggleSection = (section: string) => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
   const formatDateTime = (dateTimeString: string) => {
     const date = new Date(dateTimeString);
     return {
@@ -65,14 +81,23 @@ export const AppointmentList: React.FC<AppointmentListProps> = ({
     const scheduled: Appointment[] = [];
     const completed: Appointment[] = [];
     const cancelled: Appointment[] = [];
+    const now = new Date();
 
     appointments.forEach((appointment) => {
-      if (appointment.status === 'scheduled' || appointment.status === 'pending_reschedule') {
-        scheduled.push(appointment);
-      } else if (appointment.status === 'completed') {
-        completed.push(appointment);
-      } else {
+      const appointmentDate = new Date(appointment.appointment_datetime);
+      const isPast = appointmentDate < now;
+
+      // Check if appointment is actually cancelled (not just past date)
+      if (appointment.status === 'cancelled') {
         cancelled.push(appointment);
+      }
+      // If appointment date has passed, treat it as completed
+      else if (isPast) {
+        completed.push(appointment);
+      }
+      // Otherwise it's scheduled (includes pending_reschedule)
+      else {
+        scheduled.push(appointment);
       }
     });
 
@@ -111,10 +136,14 @@ export const AppointmentList: React.FC<AppointmentListProps> = ({
       : appointment.doctor.specialization;
     
     const isPast = new Date(appointment.appointment_datetime) < new Date();
+    
+    // Determine display status (completed if past date, otherwise use appointment status)
+    const displayStatus = isPast && appointment.status !== 'cancelled' ? 'completed' : appointment.status;
+    
     const canModify = appointment.status === 'scheduled' && !isPast && !isDoctor;
     const canDoctorReschedule = isDoctor && appointment.status === 'scheduled' && !isPast;
     const canDoctorCancel = isDoctor && appointment.status !== 'cancelled' && !isPast;
-    const canStartSession = isDoctor && appointment.status === 'scheduled';
+    const canStartSession = isDoctor && appointment.status === 'scheduled' && !isPast;
     const canViewSession = !isDoctor && appointment.status !== 'cancelled';
     const isPendingReschedule = appointment.status === 'pending_reschedule';
 
@@ -125,8 +154,8 @@ export const AppointmentList: React.FC<AppointmentListProps> = ({
             <h3 className={styles.doctorName}>{displayName}</h3>
             <p className={styles.specialization}>{subtitle}</p>
           </div>
-          <span className={`${styles.statusBadge} ${getStatusColor(appointment.status)}`}>
-            {getStatusLabel(appointment.status)}
+          <span className={`${styles.statusBadge} ${getStatusColor(displayStatus)}`}>
+            {getStatusLabel(displayStatus)}
           </span>
         </div>
 
@@ -285,28 +314,41 @@ export const AppointmentList: React.FC<AppointmentListProps> = ({
     );
   }
 
+  const renderSection = (title: string, appointments: Appointment[], sectionKey: string) => {
+    if (appointments.length === 0) return null;
+
+    const isExpanded = expandedSections[sectionKey];
+    const showMore = appointments.length > 5;
+    const displayedAppointments = isExpanded ? appointments : appointments.slice(0, 5);
+
+    return (
+      <div key={sectionKey} className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>
+            {title} ({appointments.length})
+          </h2>
+          {showMore && (
+            <button
+              className={styles.toggleButton}
+              onClick={() => toggleSection(sectionKey)}
+              type="button"
+            >
+              {isExpanded ? '▲ Show less' : '▼ Show all'}
+            </button>
+          )}
+        </div>
+        <div className={styles.appointmentsGrid}>
+          {displayedAppointments.map(renderAppointmentCard)}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className={styles.container}>
-      {scheduled.length > 0 && (
-        <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>Upcoming Appointments</h2>
-          <div className={styles.appointmentsGrid}>{scheduled.map(renderAppointmentCard)}</div>
-        </div>
-      )}
-
-      {completed.length > 0 && (
-        <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>Completed Appointments</h2>
-          <div className={styles.appointmentsGrid}>{completed.map(renderAppointmentCard)}</div>
-        </div>
-      )}
-
-      {cancelled.length > 0 && (
-        <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>Cancelled Appointments</h2>
-          <div className={styles.appointmentsGrid}>{cancelled.map(renderAppointmentCard)}</div>
-        </div>
-      )}
+      {renderSection('Upcoming Appointments', scheduled, 'scheduled')}
+      {renderSection('Completed Appointments', completed, 'completed')}
+      {renderSection('Cancelled Appointments', cancelled, 'cancelled')}
     </div>
   );
 };
