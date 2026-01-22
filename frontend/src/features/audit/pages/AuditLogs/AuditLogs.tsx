@@ -7,6 +7,7 @@ export const AuditLogs = () => {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
 
   // Filters
   const [resourceType, setResourceType] = useState('');
@@ -27,7 +28,7 @@ export const AuditLogs = () => {
         action: action || undefined,
         startDate: startDate || undefined,
         endDate: endDate || undefined,
-        limit: 100,
+        limit: 500,
       });
       setLogs(data);
     } catch (err) {
@@ -107,20 +108,12 @@ export const AuditLogs = () => {
 
         <div className={styles.filterGroup}>
           <label>Start Date</label>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
+          <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
         </div>
 
         <div className={styles.filterGroup}>
           <label>End Date</label>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
+          <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
         </div>
 
         <button onClick={loadLogs} className={styles.refreshButton}>
@@ -163,7 +156,7 @@ export const AuditLogs = () => {
                   </td>
                 </tr>
               ) : (
-                logs.map((log) => {
+                (showAll ? logs : logs.slice(0, 10)).map((log) => {
                   const details = parseDetails(log.details);
                   return (
                     <tr key={log.audit_id}>
@@ -209,6 +202,15 @@ export const AuditLogs = () => {
               )}
             </tbody>
           </table>
+
+          {/* Show More/Less Button */}
+          {logs.length > 10 && (
+            <div className={styles.showMoreContainer}>
+              <button onClick={() => setShowAll(!showAll)} className={styles.showMoreButton}>
+                {showAll ? 'Show Less' : `Show All (${logs.length} total)`}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

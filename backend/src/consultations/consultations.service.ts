@@ -148,14 +148,21 @@ export class ConsultationsService {
       },
     });
 
-    // Log consultation access
+    // Log consultation access with patient info
     if (consultation && user.user_id) {
       try {
+        const patientName = consultation.appointment?.patient?.user
+          ? `${consultation.appointment.patient.user.first_name} ${consultation.appointment.patient.user.last_name}`
+          : undefined;
+        const patientEmail = consultation.appointment?.patient?.user?.email;
+
         await this.auditService.logMedicalRecordAccess(
           user.user_id,
           'CONSULTATION_VIEW',
           consultation.consultation_id.toString(),
           consultation.appointment.patient_id.toString(),
+          patientName,
+          patientEmail,
         );
       } catch (error) {
         console.error('Failed to log consultation view:', error);

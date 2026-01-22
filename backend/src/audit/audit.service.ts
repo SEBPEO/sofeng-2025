@@ -94,13 +94,22 @@ export class AuditService {
       | 'PRESCRIPTION_VIEW',
     consultationId: string,
     patientId?: string,
+    patientName?: string,
+    patientEmail?: string,
   ) {
     await this.log({
       userId,
       action,
       resourceType: 'Consultation',
       resourceId: consultationId,
-      details: { patientId },
+      details: {
+        patientId,
+        patientName,
+        patientEmail,
+        message: patientName
+          ? `Accessed consultation for patient ${patientName} (${patientEmail})`
+          : undefined,
+      },
     });
   }
 

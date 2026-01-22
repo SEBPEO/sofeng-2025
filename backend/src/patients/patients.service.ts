@@ -167,6 +167,14 @@ export class PatientsService {
       throw new Error('Doctor profile not found');
     }
 
+    // Fetch patient info before deletion for audit logging
+    const patient = await this.prisma.patientProfile.findUnique({
+      where: { patient_id: patientId },
+      include: {
+        user: true,
+      },
+    });
+
     // Delete assignment
     await this.prisma.doctorPatient.delete({
       where: {
@@ -177,7 +185,12 @@ export class PatientsService {
       },
     });
 
-    return { success: true, patientId };
+    return {
+      success: true,
+      patientId,
+      patientName: patient ? `${patient.user.first_name} ${patient.user.last_name}` : 'Unknown',
+      patientEmail: patient?.user.email || 'unknown',
+    };
   }
 
   /**

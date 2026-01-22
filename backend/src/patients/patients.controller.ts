@@ -10,10 +10,14 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { PatientsService } from './patients.service';
+import { AuditService } from '../audit/audit.service';
 
 @Controller('patients')
 export class PatientsController {
-  constructor(private readonly patientsService: PatientsService) {}
+  constructor(
+    private readonly patientsService: PatientsService,
+    private readonly auditService: AuditService,
+  ) {}
 
   /**
    * GET /patients
@@ -65,7 +69,27 @@ export class PatientsController {
     }
 
     try {
-      return await this.patientsService.assignPatientToDoctor(doctorUserId, patientIdNum);
+      const result = await this.patientsService.assignPatientToDoctor(doctorUserId, patientIdNum);
+
+      // Log audit event with patient name
+      try {
+        await this.auditService.log({
+          userId: doctorUserId,
+          action: 'CREATE',
+          resourceType: 'DoctorPatientAssignment',
+          resourceId: patientIdNum.toString(),
+          details: {
+            message: `Assigned patient ${result.first_name} ${result.last_name} (${result.email}) to my patient list`,
+            patientId: patientIdNum,
+            patientName: `${result.first_name} ${result.last_name}`,
+            patientEmail: result.email,
+          },
+        });
+      } catch (auditError) {
+        console.error('Failed to log assign patient audit:', auditError);
+      }
+
+      return result;
     } catch (error) {
       throw new BadRequestException(error.message || 'Failed to assign patient');
     }
@@ -87,7 +111,30 @@ export class PatientsController {
     }
 
     try {
-      return await this.patientsService.unassignPatientFromDoctor(doctorUserId, patientIdNum);
+      const result = await this.patientsService.unassignPatientFromDoctor(
+        doctorUserId,
+        patientIdNum,
+      );
+
+      // Log audit event with patient name
+      try {
+        await this.auditService.log({
+          userId: doctorUserId,
+          action: 'DELETE',
+          resourceType: 'DoctorPatientAssignment',
+          resourceId: result.patientId.toString(),
+          details: {
+            message: `Removed patient ${result.patientName} (${result.patientEmail}) from my patient list`,
+            patientId: result.patientId,
+            patientName: result.patientName,
+            patientEmail: result.patientEmail,
+          },
+        });
+      } catch (auditError) {
+        console.error('Failed to log unassign patient audit:', auditError);
+      }
+
+      return result;
     } catch (error) {
       throw new BadRequestException(error.message || 'Failed to unassign patient');
     }

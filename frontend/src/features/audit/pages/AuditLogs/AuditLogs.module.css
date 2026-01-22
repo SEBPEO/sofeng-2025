@@ -272,6 +272,36 @@
   font-style: italic;
 }
 
+/* Show More/Less */
+.showMoreContainer {
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem;
+  border-top: 1px solid #eee;
+}
+
+.showMoreButton {
+  padding: 0.75rem 2rem;
+  background: #14b8a6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.showMoreButton:hover {
+  background: #0d9488;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(20, 184, 166, 0.3);
+}
+
+.showMoreButton:active {
+  transform: translateY(0);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .filters {
