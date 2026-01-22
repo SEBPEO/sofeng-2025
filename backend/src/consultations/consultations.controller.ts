@@ -26,6 +26,7 @@ import { Response } from 'express';
 import { UpdateNotesDto } from './dto/update-notes.dto';
 import { CreateActionItemDto } from './dto/create-action-item.dto';
 import { UpdateActionItemDto } from './dto/update-action-item.dto';
+import { ShareNotesDto } from './dto/share-notes.dto';
 
 @Controller('consultations')
 @UseGuards(AuthGuard('jwt'))
@@ -175,5 +176,42 @@ export class ConsultationsController {
   async getMyConsultationNotes(@Req() req) {
     const userId = req.user?.userId || req.user?.sub;
     return this.consultationsService.getMyConsultationNotes(userId);
+  }
+
+  // Shared consultation notes endpoints
+  @Post(':consultationId/share')
+  async shareConsultationNotes(
+    @Req() req,
+    @Param('consultationId', ParseIntPipe) consultationId: number,
+    @Body() shareDto: ShareNotesDto,
+  ) {
+    const userId = req.user?.userId || req.user?.sub;
+    return this.consultationsService.shareNotes(
+      userId,
+      consultationId,
+      shareDto.sharedWithDoctorId,
+      shareDto.permissions,
+    );
+  }
+
+  @Get('shared-with-me')
+  async getSharedWithMe(@Req() req) {
+    const userId = req.user?.userId || req.user?.sub;
+    return this.consultationsService.getSharedNotes(userId);
+  }
+
+  @Get(':consultationId/shares')
+  async getConsultationShares(
+    @Req() req,
+    @Param('consultationId', ParseIntPipe) consultationId: number,
+  ) {
+    const userId = req.user?.userId || req.user?.sub;
+    return this.consultationsService.getConsultationShares(userId, consultationId);
+  }
+
+  @Delete('shares/:shareId')
+  async revokeShare(@Req() req, @Param('shareId', ParseIntPipe) shareId: number) {
+    const userId = req.user?.userId || req.user?.sub;
+    return this.consultationsService.revokeShare(userId, shareId);
   }
 }
