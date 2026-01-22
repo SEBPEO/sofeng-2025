@@ -36,7 +36,14 @@ apiClient.interceptors.response.use(
         statusText,
         data,
       });
-      
+
+      // Handle 401 Unauthorized - token expired or invalid
+      if (status === 401) {
+        localStorage.removeItem(TOKEN_KEY);
+        window.location.href = '/login';
+        return Promise.reject(error);
+      }
+
       // Improve error message
       if (data && typeof data === 'object') {
         error.message = data.message || data.error || statusText || 'Request failed';
