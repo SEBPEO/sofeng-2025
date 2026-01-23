@@ -139,16 +139,9 @@ export class AppointmentsService {
       },
     });
 
-    // Send appointment scheduled notifications
-    // Wrap in try-catch so notification errors don't fail the appointment creation
-    try {
-      await this.sendAppointmentScheduledNotifications(appointment);
-    } catch (error) {
+    this.sendAppointmentScheduledNotifications(appointment).catch((error) => {
       this.logger.error('Failed to send appointment scheduled notifications:', error);
-      // Continue anyway - appointment is already created
-    }
-
-    // Log appointment creation
+    });
     try {
       const patientUserId = appointment.patient?.user?.user_id;
       if (patientUserId) {
@@ -631,7 +624,6 @@ export class AppointmentsService {
     const patientName = `${appointment.patient.user.first_name} ${appointment.patient.user.last_name}`;
     const appointmentDate = new Date(appointment.appointment_datetime);
 
-    // Notify patient
     await this.notificationsService.createNotification(
       appointment.patient.user.user_id,
       'APPOINTMENT_SCHEDULED',
@@ -648,7 +640,6 @@ export class AppointmentsService {
       doctorName,
     );
 
-    // Notify doctor
     await this.notificationsService.createNotification(
       appointment.doctor.user.user_id,
       'APPOINTMENT_SCHEDULED',

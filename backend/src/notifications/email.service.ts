@@ -25,7 +25,6 @@ export class EmailService {
       const smtpPass = this.configService.get<string>('SMTP_PASS');
       const smtpFrom = this.configService.get<string>('SMTP_FROM');
 
-      // Check if SMTP is configured
       if (!smtpHost || !smtpPort || !smtpUser || !smtpPass || !smtpFrom) {
         this.logger.warn(
           'SMTP configuration is missing. Email will not be sent. Please configure SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and SMTP_FROM in your .env file.',
@@ -39,7 +38,6 @@ export class EmailService {
       }
 
       const portNumber = parseInt(smtpPort, 10);
-      // Port 465 uses SSL (secure: true), port 587 uses STARTTLS (secure: false)
       const isSecure = portNumber === 465;
 
       const transporter = nodemailer.createTransport({
@@ -61,8 +59,11 @@ export class EmailService {
 
       this.logger.log(`Email successfully sent to: ${to}`);
     } catch (error) {
-      this.logger.error(`Failed to send email to ${to}:`, error);
-      throw error;
+      this.logger.error(
+        `Failed to send email to ${to}, but continuing with appointment creation:`,
+        error,
+      );
+      return;
     }
   }
 
