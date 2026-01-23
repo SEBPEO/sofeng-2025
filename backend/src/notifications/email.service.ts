@@ -25,7 +25,6 @@ export class EmailService {
       const smtpPass = this.configService.get<string>('SMTP_PASS');
       const smtpFrom = this.configService.get<string>('SMTP_FROM');
 
-      // Check if SMTP is configured
       if (!smtpHost || !smtpPort || !smtpUser || !smtpPass || !smtpFrom) {
         this.logger.warn(
           'SMTP configuration is missing. Email will not be sent. Please configure SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and SMTP_FROM in your .env file.',
@@ -39,7 +38,6 @@ export class EmailService {
       }
 
       const portNumber = parseInt(smtpPort, 10);
-      // Port 465 uses SSL (secure: true), port 587 uses STARTTLS (secure: false)
       const isSecure = portNumber === 465;
 
       const transporter = nodemailer.createTransport({
@@ -52,28 +50,14 @@ export class EmailService {
         },
       });
 
-      const sendEmailPromise = transporter.sendMail({
+      await transporter.sendMail({
         from: smtpFrom,
         to,
         subject,
         html: htmlContent,
       });
 
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => {
-          reject(new Error('Email send timeout after 3 seconds'));
-        }, 1500);
-      });
-
-      try {
-        await Promise.race([sendEmailPromise, timeoutPromise]);
-        this.logger.log(`Email successfully sent to: ${to}`);
-      } catch (timeoutError) {
-        this.logger.warn(
-          `Email send to ${to} timed out or failed, but continuing with appointment creation. Error: ${timeoutError instanceof Error ? timeoutError.message : 'Unknown error'}`,
-        );
-        return;
-      }
+      this.logger.log(`Email successfully sent to: ${to}`);
     } catch (error) {
       this.logger.error(
         `Failed to send email to ${to}, but continuing with appointment creation:`,
