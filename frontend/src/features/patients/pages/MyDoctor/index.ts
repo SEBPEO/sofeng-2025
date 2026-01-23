@@ -1,0 +1,1 @@
+export { MyDoctor } from './MyDoctor';

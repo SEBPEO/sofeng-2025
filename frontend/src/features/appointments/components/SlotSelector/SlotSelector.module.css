@@ -1,0 +1,96 @@
+.container {
+  width: 100%;
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-md);
+}
+
+.loading,
+.empty,
+.error {
+  padding: var(--space-lg);
+  text-align: center;
+  color: var(--color-text-light);
+  font-size: 0.9375rem;
+  background: rgba(23, 181, 163, 0.03);
+  border-radius: var(--radius-md);
+  border: 1px dashed rgba(23, 181, 163, 0.2);
+}
+
+.error {
+  color: #d32f2f;
+  background: rgba(211, 47, 47, 0.06);
+  border-color: rgba(211, 47, 47, 0.2);
+}
+
+.slotsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--space-sm);
+}
+
+.slotButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+  border: 2px solid rgba(23, 181, 163, 0.2);
+  border-radius: var(--radius-md);
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-family-base);
+}
+
+.slotButton:hover:not(.selected) {
+  border-color: rgba(23, 181, 163, 0.4);
+  background: rgba(23, 181, 163, 0.05);
+  transform: translateY(-2px);
+}
+
+.slotButton.selected {
+  border-color: var(--color-primary);
+  background: linear-gradient(135deg, rgba(23, 181, 163, 0.15) 0%, rgba(23, 181, 163, 0.08) 100%);
+  box-shadow: 0 4px 12px rgba(23, 181, 163, 0.2);
+}
+
+.slotTime {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: var(--space-xs);
+}
+
+.slotButton.selected .slotTime {
+  color: var(--color-primary);
+}
+
+.slotDuration {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  font-weight: 500;
+}
+
+.slotButton.selected .slotDuration {
+  color: var(--color-primary-700);
+}
+
+@media (max-width: 600px) {
+  .slotsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: var(--space-xs);
+  }
+
+  .slotButton {
+    padding: var(--space-sm);
+  }
+}
+
+

@@ -1,9 +1,36 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ConfigModule } from '@nestjs/config';
+import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
+import { AppointmentsModule } from './appointments/appointments.module';
+import { PatientsModule } from './patients/patients.module';
+import { PrismaModule } from './prisma/prisma.module';
+import { AvailabilityModule } from './availability/availability.module';
+import { ConsultationsModule } from './consultations/consultations.module';
+import { ChatModule } from './chat/chat.module';
+import { NotificationPreferencesModule } from './notification-preferences/notification-preferences.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { AuditModule } from './audit/audit.module';
 
 @Module({
-  imports: [],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    PrismaModule,
+    AuditModule, // Add audit module globally
+    UsersModule,
+    AuthModule,
+    AppointmentsModule,
+    PatientsModule,
+    AvailabilityModule,
+    ConsultationsModule,
+    ChatModule,
+    NotificationPreferencesModule,
+    NotificationsModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

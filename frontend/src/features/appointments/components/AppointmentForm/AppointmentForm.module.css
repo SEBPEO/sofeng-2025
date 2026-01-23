@@ -1,0 +1,128 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.label {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-xs);
+}
+
+.input,
+.textarea {
+  padding: var(--space-md);
+  border: 1.5px solid rgba(23, 181, 163, 0.2);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-family: var(--font-family-base);
+  background: var(--color-surface);
+  color: var(--color-text);
+  transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--color-text-light);
+  opacity: 0.6;
+}
+
+.input:hover,
+.textarea:hover {
+  border-color: rgba(23, 181, 163, 0.4);
+}
+
+.input:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(23, 181, 163, 0.1);
+}
+
+.helperText {
+  font-size: 0.8125rem;
+  color: var(--color-text-light);
+  margin-top: var(--space-xs);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 120px;
+  line-height: var(--line-height-base);
+}
+
+.errorText {
+  color: #d32f2f;
+  font-size: 0.8125rem;
+  margin-top: var(--space-xs);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.errorText::before {
+  content: '•';
+  font-weight: bold;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: flex-end;
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
+  border-top: 1px solid rgba(23, 181, 163, 0.1);
+}
+
+.selectedSlotInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: linear-gradient(135deg, rgba(23, 181, 163, 0.08) 0%, rgba(23, 181, 163, 0.03) 100%);
+  border: 1.5px solid rgba(23, 181, 163, 0.2);
+  border-radius: var(--radius-md);
+  margin-top: var(--space-sm);
+}
+
+.selectedSlotLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.selectedSlotTime {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.checkboxLabel {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: flex-start;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.checkboxLabel input {
+  margin-top: 4px;
+}
+
+.checkboxText {
+  color: var(--color-text);
+}
