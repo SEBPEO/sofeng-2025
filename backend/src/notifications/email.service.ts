@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import * as nodemailer from 'nodemailer';
 import { NotificationPreferencesService } from '../notification-preferences/notification-preferences.service';
 
 @Injectable()
@@ -13,30 +14,56 @@ export class EmailService {
 
   async sendEmail(to: string, subject: string, htmlContent: string) {
     this.logger.log(`
-      Email would be sent to: ${to}
+      Sending email to: ${to}
       Subject: ${subject}
-      Content: ${htmlContent}
     `);
 
-    // Example with nodemailer (commented out - you'll need to install nodemailer and configure it):
-    /*
-    const transporter = nodemailer.createTransport({
-      host: this.configService.get('SMTP_HOST'),
-      port: this.configService.get('SMTP_PORT'),
-      secure: true,
-      auth: {
-        user: this.configService.get('SMTP_USER'),
-        pass: this.configService.get('SMTP_PASS'),
-      },
-    });
+    try {
+      const smtpHost = this.configService.get<string>('SMTP_HOST');
+      const smtpPort = this.configService.get<string>('SMTP_PORT');
+      const smtpUser = this.configService.get<string>('SMTP_USER');
+      const smtpPass = this.configService.get<string>('SMTP_PASS');
+      const smtpFrom = this.configService.get<string>('SMTP_FROM');
 
-    await transporter.sendMail({
-      from: this.configService.get('SMTP_FROM'),
-      to,
-      subject,
-      html: htmlContent,
-    });
-    */
+      // Check if SMTP is configured
+      if (!smtpHost || !smtpPort || !smtpUser || !smtpPass || !smtpFrom) {
+        this.logger.warn(
+          'SMTP configuration is missing. Email will not be sent. Please configure SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and SMTP_FROM in your .env file.',
+        );
+        this.logger.log(`
+          Email would be sent to: ${to}
+          Subject: ${subject}
+          Content: ${htmlContent}
+        `);
+        return;
+      }
+
+      const portNumber = parseInt(smtpPort, 10);
+      // Port 465 uses SSL (secure: true), port 587 uses STARTTLS (secure: false)
+      const isSecure = portNumber === 465;
+
+      const transporter = nodemailer.createTransport({
+        host: smtpHost,
+        port: portNumber,
+        secure: isSecure,
+        auth: {
+          user: smtpUser,
+          pass: smtpPass,
+        },
+      });
+
+      await transporter.sendMail({
+        from: smtpFrom,
+        to,
+        subject,
+        html: htmlContent,
+      });
+
+      this.logger.log(`Email successfully sent to: ${to}`);
+    } catch (error) {
+      this.logger.error(`Failed to send email to ${to}:`, error);
+      throw error;
+    }
   }
 
   async sendUnreadMessageNotification(
