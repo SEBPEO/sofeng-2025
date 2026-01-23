@@ -52,17 +52,34 @@ export class EmailService {
         },
       });
 
-      await transporter.sendMail({
+      const sendEmailPromise = transporter.sendMail({
         from: smtpFrom,
         to,
         subject,
         html: htmlContent,
       });
 
-      this.logger.log(`Email successfully sent to: ${to}`);
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => {
+          reject(new Error('Email send timeout after 3 seconds'));
+        }, 1500);
+      });
+
+      try {
+        await Promise.race([sendEmailPromise, timeoutPromise]);
+        this.logger.log(`Email successfully sent to: ${to}`);
+      } catch (timeoutError) {
+        this.logger.warn(
+          `Email send to ${to} timed out or failed, but continuing with appointment creation. Error: ${timeoutError instanceof Error ? timeoutError.message : 'Unknown error'}`,
+        );
+        return;
+      }
     } catch (error) {
-      this.logger.error(`Failed to send email to ${to}:`, error);
-      throw error;
+      this.logger.error(
+        `Failed to send email to ${to}, but continuing with appointment creation:`,
+        error,
+      );
+      return;
     }
   }
 
