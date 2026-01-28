@@ -114,9 +114,9 @@ Doctors must be able to initiate a new visit session by creating a visit record 
 Consultation {
   consultation_id: Int (Primary Key)
   appointment_id: Int (Foreign Key, Unique)
-  created_at: DateTime
+  created_at: DateTime (nullable)
   notes_status: NotesStatus (DRAFT, APPROVED, FINAL)
-  notes_locked: Boolean
+  notes_locked: Boolean (default: false)
   diagnosis: String (nullable)
   treatment_plan: String (nullable)
   transcript: String (nullable)
@@ -124,6 +124,8 @@ Consultation {
   notes_approved_at: DateTime (nullable)
   notes_approved_by: String (nullable)
 }
+
+Note: See backend/prisma/schema.prisma for complete schema details.
 ```
 
 #### Implementation Status
@@ -209,7 +211,7 @@ Consultation {
   AI_summary: String (nullable)
   transcript: String (nullable)
   notes_status: NotesStatus (DRAFT, APPROVED, FINAL)
-  notes_locked: Boolean
+  notes_locked: Boolean (default: false)
   notes_approved_at: DateTime (nullable)
   notes_approved_by: String (nullable)
 }
@@ -219,6 +221,8 @@ NotesStatus Enum {
   APPROVED
   FINAL
 }
+
+Note: See backend/prisma/schema.prisma for complete schema details.
 ```
 
 #### Implementation Status
@@ -394,16 +398,18 @@ Doctors must be able to share consultation notes with other verified doctors in 
 #### Data Model
 ```
 SharedConsultationNote {
-  share_id: Int (Primary Key)
+  share_id: Int (Primary Key, Auto-increment)
   consultation_id: Int (Foreign Key)
   shared_by_doctor_id: Int (Foreign Key)
   shared_with_doctor_id: Int (Foreign Key)
   permissions: String (default: "read")
-  created_at: DateTime
+  created_at: DateTime (default: now)
   revoked_at: DateTime (nullable)
 }
 
 Unique Constraint: [consultation_id, shared_by_doctor_id, shared_with_doctor_id]
+
+Note: See backend/prisma/schema.prisma for complete schema details.
 ```
 
 #### API Endpoints
@@ -531,7 +537,7 @@ The system logs the following categories of events:
 #### Data Model
 ```
 AuditLog {
-  audit_id: Int (Primary Key)
+  audit_id: Int (Primary Key, Auto-increment)
   user_id: String (Foreign Key, nullable)
   action: AuditAction (Enum)
   resource_type: String (e.g., "Consultation", "Appointment")
@@ -565,6 +571,8 @@ AuditAction Enum {
   // System Events
   SYSTEM_ERROR, SECURITY_ALERT
 }
+
+Note: See backend/prisma/schema.prisma for complete schema details.
 ```
 
 #### Indexes for Performance
@@ -656,14 +664,16 @@ Users (both doctors and patients) must be able to exercise their data privacy ri
 **Data Model**:
 ```
 AccountDeletionRequest {
-  request_id: Int (Primary Key)
+  request_id: Int (Primary Key, Auto-increment)
   user_id: String (Foreign Key)
   reason: String (Text, nullable)
   status: RequestStatus (PENDING, PROCESSING, COMPLETED, REJECTED, CANCELLED)
-  requested_at: DateTime
+  requested_at: DateTime (default: now)
   processed_at: DateTime (nullable)
   processed_by: String (nullable)
 }
+
+Note: See backend/prisma/schema.prisma for complete schema details.
 ```
 
 ---
@@ -713,10 +723,10 @@ AccountDeletionRequest {
 **Data Model**:
 ```
 DataExportRequest {
-  request_id: Int (Primary Key)
+  request_id: Int (Primary Key, Auto-increment)
   user_id: String (Foreign Key)
   status: RequestStatus (PENDING, PROCESSING, COMPLETED, REJECTED, CANCELLED)
-  requested_at: DateTime
+  requested_at: DateTime (default: now)
   completed_at: DateTime (nullable)
   export_file_path: String (nullable)
   expires_at: DateTime (nullable)
@@ -729,6 +739,8 @@ RequestStatus Enum {
   REJECTED
   CANCELLED
 }
+
+Note: See backend/prisma/schema.prisma for complete schema details.
 ```
 
 ---
@@ -852,6 +864,8 @@ Appointment {
   patient_consent_to_record: Boolean (default: false)
   ...
 }
+
+Note: See backend/prisma/schema.prisma for complete schema details.
 ```
 
 #### User Interface Elements
@@ -962,10 +976,10 @@ Consultation {
   consultation_id: Int
   appointment_id: Int (links to patient via appointment)
   notes_status: NotesStatus (must be APPROVED or FINAL)
-  diagnosis: String
-  treatment_plan: String
-  AI_summary: String
-  notes_approved_at: DateTime
+  diagnosis: String (nullable)
+  treatment_plan: String (nullable)
+  AI_summary: String (nullable)
+  notes_approved_at: DateTime (nullable)
 }
 
 Appointment {
@@ -979,6 +993,8 @@ PatientProfile {
   user_id: String
   // Links to appointments which link to consultations
 }
+
+Note: See backend/prisma/schema.prisma for complete schema details.
 ```
 
 #### User Interface Elements
