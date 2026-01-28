@@ -84,6 +84,18 @@ Maintaining this document helps ensure clarity, structure, and accountability �
 
 ---
 
+## 📚 Documentation
+
+For detailed technical documentation, please refer to:
+
+-   **[Functional Requirements](./docs/FUNCTIONAL_REQUIREMENTS.md)** - Comprehensive specification of all system functional requirements
+-   **[Note Sharing Implementation](./docs/NOTE_SHARING_IMPLEMENTATION.md)** - Doctor-to-doctor note sharing feature
+-   **[Notification System Setup](./docs/NOTIFICATION_SYSTEM_SETUP.md)** - Notification system configuration
+-   **[Meeting Summaries](./docs/meetings-summary.md)** - Team meeting notes and decisions
+-   **UML Diagrams** - System architecture and design diagrams in `/docs/uml_diagrams/`
+
+---
+
 ## 🚀 Future Vision
 
 We plan to expand **Medical AI Notetaker** by adding:
